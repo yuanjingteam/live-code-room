@@ -1,14 +1,17 @@
 'use client';
-
 import Head from 'next/head';
-import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import * as React from 'react';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import '@/lib/env';
 
-import test1 from '../../public/images/test1.svg'
-import test2 from '../../public/images/test1.svg'
+import { setName, setRoomId } from '@/store/modules/userInfoStore';
 
+import { joinRoom } from '../services/socketService';
 
+import CreateImg from '~/svg/CreateImg.svg';
+import JoinImg from '~/svg/JoinImg.svg';
 
 /**
  * SVGR Support
@@ -22,19 +25,118 @@ import test2 from '../../public/images/test1.svg'
 // to customize the default configuration.
 
 export default function HomePage() {
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  // 定义接口来描述输入框的值
+  interface RoomFormValues {
+    name: string;
+    roomId: string;
+    nameCreate: string;
+  }
+
+  const [formValues, setFormValues] = useState<RoomFormValues>({
+    name: '',
+    roomId: '',
+    nameCreate: '',
+  });
+
+  // 处理名字输入框变化
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+    if (name === 'nameCreate' || name === 'name') {
+      localStorage.setItem('name', value);
+      dispatch(setName());
+    } else {
+      localStorage.setItem('roomId', value);
+    }
+  };
+
+  // 处理创建房间的逻辑
+  const handleCreateRoom = () => {
+    const roomCode = generateRoomCode();
+    localStorage.setItem('roomId', roomCode);
+    dispatch(setRoomId());
+    if (formValues.nameCreate === '') {
+      alert('请填写你的名字');
+      return;
+    }
+    // 在这里处理创建房间的逻辑
+    router.push('/room');
+    // joinRoom({ roomId: roomCode, userName: formValues.nameCreate });
+  };
+
+  //处理加入房间的逻辑
+  const handleJoinRoom = () => {
+    if (formValues.name === '' || formValues.roomId === '') {
+      alert('请填写你的名字和房间号');
+      return;
+    }
+    router.push('/room');
+    // joinRoom({ roomId: formValues.roomId, userName: formValues.name });
+  };
+
+  //生成邀请链接
+  // const [inviteLink, setInviteLink] = React.useState('');
+  const generateRoomCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
   return (
     <main>
       <Head>
         <title>Live Code Room</title>
       </Head>
-      <section className='bg-white flex'>
-        <div>
-          <h1>加入房间</h1>
-          <Image src={test2} alt="加入房间" />
-        </div>
-        <div>
-          <h1>创建房间</h1>
-          <Image src={test1} alt="创建房间" />
+      <section className='bg-white px-8 py-8 h-screen'>
+        <h1 className='text-center'>Live Code Room</h1>
+        <div className='flex w-[1000px] h-[650px] m-auto mt-8'>
+          <div className=' border rounded-lg shadow-lg px-8 py-8 mx-10  w-[450px] h-[650px]'>
+            <h1 className='text-center'>加 入 房 间</h1>
+            <JoinImg className='max-w-sm'></JoinImg>
+            <input
+              type='text'
+              placeholder='请填写你的名字'
+              className='w-full rounded-lg'
+              name='name'
+              onChange={handleChange}
+            />
+            <input
+              type='text'
+              placeholder='请填写房间号'
+              className='w-full my-5 rounded-lg'
+              name='roomId'
+              onChange={handleChange}
+            />
+            <button
+              className='w-full h-10 border rounded-lg bg-lime-500 hover:bg-lime-600'
+              onClick={handleJoinRoom}
+            >
+              加入房间
+            </button>
+          </div>
+          <div className='border rounded-lg shadow-lg px-8 py-8 mx-14 w-[450px] h-[650px]'>
+            <h1 className='text-center'>创建房间</h1>
+            <CreateImg></CreateImg>
+            <input
+              type='text'
+              placeholder='请填写你的名字'
+              className='w-full rounded-lg mt-14 my-5'
+              name='nameCreate'
+              onChange={handleChange}
+            />
+            <button
+              className='w-full h-10 border rounded-lg bg-lime-500 hover:bg-lime-600'
+              onClick={handleCreateRoom}
+            >
+              创建房间
+            </button>
+          </div>
         </div>
       </section>
     </main>

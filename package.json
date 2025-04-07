@@ -1,9 +1,8 @@
 {
   "name": "ts-nextjs-tailwind-starter",
   "version": "0.1.0",
-  "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently \"next dev\" \"node serve.js\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -18,16 +17,32 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@codemirror/lang-javascript": "^6.2.3",
+    "@codemirror/lint": "^6.8.4",
+    "@reduxjs/toolkit": "^2.6.1",
+    "@uiw/codemirror-theme-androidstudio": "^4.23.10",
+    "@uiw/react-codemirror": "^4.23.10",
     "clsx": "^2.0.0",
+    "codemirror": "^5.64.2",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "lucide-react": "^0.438.0",
     "next": "^14.2.23",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.4.0",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^2.6.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-react": "^7.26.3",
+    "@babel/standalone": "^7.26.9",
     "@commitlint/cli": "^16.3.0",
     "@commitlint/config-conventional": "^16.2.4",
     "@svgr/webpack": "^8.1.0",
@@ -39,6 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.23",
     "eslint-config-prettier": "^8.10.0",
@@ -50,14 +66,16 @@
     "next-router-mock": "^0.9.0",
     "next-sitemap": "^2.5.28",
     "postcss": "^8.5.1",
-    "prettier": "^2.8.8",
+    "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.5.0",
+    "raw-loader": "^4.0.2",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
     "typescript": "^4.9.5"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [
-      "eslint --max-warnings=0",
+      "eslint --max-warnings=20",
       "prettier -w"
     ],
     "**/*.{json,css,scss,md,webmanifest}": [

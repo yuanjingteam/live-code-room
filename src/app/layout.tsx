@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import * as React from 'react';
+import ReduxProvider from '@/store/provider';
 
 import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
@@ -56,7 +57,9 @@ export default function RootLayout({
 }) {
   return (
     <html>
-      <body>{children}</body>
+      <body>
+        <ReduxProvider>{children}</ReduxProvider>
+      </body>
     </html>
   );
 }
