@@ -1,15 +1,15 @@
 import dotenv from 'dotenv';
 import express from 'express';
-import { createServer } from 'http';
+import http from 'http';
 import path from 'path';
-import { Server } from 'socket.io';
+import { createServer } from 'socket.io';
 
 dotenv.config();
 
 const app = express();
-const server = createServer(app);
+const server = http.createServer(app);
 
-const io = new Server(server, {
+const io = createServer(server, {
   path: '/socket.io',
   cors: {
     origin: '*',
@@ -21,20 +21,21 @@ const rooms = new Map();
 io.on('connection', (socket) => {
   let currentRoomId = null;
 
-  socket.on('code-snippet', (paylaod) => {
-    io.sockets.in(paylaod.roomId).emit('code-snippet', paylaod);
+  socket.on('code-snippet', (payload) => {
+    io.sockets.in(payload.roomId).emit('update-codeSnippet', payload);
   });
 
-  socket.on('chat', (paylaod) => {
-    io.sockets.in(paylaod.roomId).emit('chat', paylaod);
+  socket.on('chat', (payload) => {
+    console.log(`chat: `, payload);
+    io.sockets.in(payload.roomId).emit('chat', payload);
   });
 
-  socket.on('join_room', (room, callback) => {
+  socket.on('join_room', (room) => {
     try {
       // 1. 离开旧房间
-      if (currentRoomId) {
-        socket.leave(room.roomId); // 调用离开函数
-      }
+      // if (currentRoomId) {
+      //   socket.leave(room.roomId); // 调用离开函数
+      // }
 
       // 2. 加入新房间
       currentRoomId = room.roomId;
@@ -56,12 +57,15 @@ io.on('connection', (socket) => {
       };
 
       // 广播给房间内所有人（包括自己）
-      io.in(room.roomId).emit('room_update', roomData);
+      io.sockets.in(room.roomId).emit('room_update', roomData);
+      console.log(roomData, 'roomData');
 
       // 调用客户端回调
-      callback({ success: true, roomData });
+      // callback({ success: true, roomData });
     } catch (err) {
-      callback({ success: false, error: err.message });
+      console.log(err, 'err');
+
+      // callback({ success: false, error: err.message });
     }
   });
 });
@@ -82,6 +86,7 @@ if (process.env.NODE_ENV !== 'development') {
   });
 }
 
-// const PORT = process.env.PORT || 3001;
-// server.listen(PORT, () => {
-// });
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log('Server is running on port 3001');
+});

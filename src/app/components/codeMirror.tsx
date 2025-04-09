@@ -4,16 +4,22 @@ import CodeMirror from '@uiw/react-codemirror';
 import React from 'react';
 import { useEffect, useState } from 'react';
 
+import { listenForEvents } from '@/services/socketService';
 import { sendCodeSnippet } from '@/services/socketService';
+import { socket } from '@/services/socketService';
 
 import { evalCode } from '../../lib/tool';
 
-interface State {
-  code: string;
-  codeComponent: any;
-}
+export default function CodeMirrorComponent(props: object) {
+  interface State {
+    code: string;
+    codeComponent: any;
+  }
 
-const CodeMirrorComponent = (props: object) => {
+  interface codeType {
+    roomId: string;
+    codeSnippet: string;
+  }
   const [state, setState] = useState<State>({
     code: '',
     codeComponent: null,
@@ -30,6 +36,13 @@ export default File;`);
 
   const [isRun, setIsRun] = useState<boolean>(props.message);
 
+  // 定义回调函数
+  const handleCodeSnippet = (payload: codeType) => {
+    console.log('更新11111');
+
+    setCode(payload.codeSnippet); // 更新代码状态
+  };
+
   useEffect(() => {
     // 使用 require 读取代码
     // const rawCode = require(`!raw-loader!../../../src/lib/file`).default;
@@ -42,8 +55,26 @@ export default File;`);
 
   //监听代码更改
   useEffect(() => {
-    sendCodeSnippet({ code });
+    sendCodeSnippet({
+      roomId: localStorage.getItem('roomId'),
+      codeSnippet: code,
+    });
   }, [code]);
+
+  //实时获取更新过后的代码
+  useEffect(() => {
+    // 传递回调函数对象
+    listenForEvents({
+      onCodeSnippet: handleCodeSnippet,
+    });
+
+    // 组件卸载时移除事件监听（重要！避免内存泄漏）
+    return () => {
+      // 需要公共文件暴露 socket 实例或提供移除监听的方法
+      // 假设公共文件导出 socket，可以这样做：
+      socket.off('update-codeSnippet');
+    };
+  }, []);
 
   const runCode = (): void => {
     try {
@@ -71,6 +102,4 @@ export default File;`);
       </div>
     </div>
   );
-};
-
-export default CodeMirrorComponent;
+}

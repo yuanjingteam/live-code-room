@@ -1,10 +1,12 @@
 'use client';
 import React from 'react';
 import { useEffect } from 'react';
-import { io } from 'socket.io-client';
 
 import ChatCom from '@/app/components/chat';
 import CodeMirrorComponent from '@/app/components/codeMirror';
+import { socket } from '@/services/socketService';
+import { listenForEvents } from '@/services/socketService';
+// import { joinRoom } from '@/services/socketService';
 
 export default function RoomPage() {
   interface RoomData {
@@ -16,15 +18,6 @@ export default function RoomPage() {
     success: boolean;
     roomData: RoomData;
   }
-  const socket = io('http://localhost:3001', {
-    withCredentials: true,
-    path: '/socket.io',
-    transports: ['websocket', 'polling'],
-    autoConnect: true, // 自动连接
-    reconnection: true, // 启用重连
-    reconnectionAttempts: 5, // 重连尝试次数
-    reconnectionDelay: 1000, // 重连延迟时间
-  });
 
   const [isRun, setIsRun] = React.useState(false);
   //获取邀请链接
@@ -39,21 +32,23 @@ export default function RoomPage() {
   //获取当前登录用户的信息
   const self = localStorage.getItem('name') || '';
 
+  const handleRoomUpdate = (data: responseData) => {
+    console.log('111');
+
+    if (data.success) {
+      setRoomData(data.roomData);
+    }
+  };
+
   useEffect(() => {
     setRoomId(localStorage.getItem('roomId') || '');
-    socket.emit(
-      'join_room',
-      {
-        roomId: localStorage.getItem('roomId') || '',
-        userName: localStorage.getItem('name'),
-      },
-      (ack: responseData) => {
-        setRoomData(ack.roomData);
-      },
-    );
-    socket.on('room_update', (callback) => {
-      setRoomData(callback);
+    // joinRoom({ roomId: localStorage.getItem('roomId') || '', userName: localStorage.getItem('name') || '' });
+    listenForEvents({
+      onRoomUpdate: handleRoomUpdate,
     });
+    return () => {
+      socket.off('room_update');
+    };
   }, []);
 
   //运行代码

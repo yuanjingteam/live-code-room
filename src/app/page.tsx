@@ -64,7 +64,7 @@ export default function HomePage() {
     }
     // 在这里处理创建房间的逻辑
     router.push('/room');
-    // joinRoom({ roomId: roomCode, userName: formValues.nameCreate });
+    joinRoom({ roomId: roomCode, userName: formValues.nameCreate });
   };
 
   //处理加入房间的逻辑
@@ -74,7 +74,7 @@ export default function HomePage() {
       return;
     }
     router.push('/room');
-    // joinRoom({ roomId: formValues.roomId, userName: formValues.name });
+    joinRoom({ roomId: formValues.roomId, userName: formValues.name });
   };
 
   //生成邀请链接
