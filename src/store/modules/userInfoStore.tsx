@@ -16,13 +16,13 @@ const userInfoStore = createSlice({
   } as UserInfoState,
   reducers: {
     setName: (state: UserInfoState) => {
-      state.name = localStorage.getItem('name') || '';
+      state.name = sessionStorage.getItem('name') || '';
     },
     setAnotherName: (state: UserInfoState) => {
-      state.anotherName = localStorage.getItem('anotherName') || '';
+      state.anotherName = sessionStorage.getItem('anotherName') || '';
     },
     setRoomId: (state: UserInfoState) => {
-      state.roomId = localStorage.getItem('roomId') || '';
+      state.roomId = sessionStorage.getItem('roomId') || '';
     },
   },
 });

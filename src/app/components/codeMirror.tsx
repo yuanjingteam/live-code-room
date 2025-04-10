@@ -4,11 +4,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import React from 'react';
 import { useEffect, useState } from 'react';
 
-// import { listenForEvents } from '@/services/socketService';
-import {
-  listenForCodeSnippet,
-  listenForRoomUpdate,
-} from '@/services/socketService';
+import { listenForCodeSnippet } from '@/services/socketService';
 import { sendCodeSnippet } from '@/services/socketService';
 import { socket } from '@/services/socketService';
 
@@ -17,17 +13,13 @@ import { evalCode } from '../../lib/tool';
 export default function CodeMirrorComponent(props: object) {
   interface State {
     code: string;
-    codeComponent: any;
+    codeComponent: React.ReactNode | null;
   }
 
   interface codeType {
     roomId: string;
     codeSnippet: string;
   }
-  // interface RoomData {
-  //   roomId: string;
-  //   members: string[];
-  // }
 
   const [state, setState] = useState<State>({
     code: '',
@@ -63,7 +55,7 @@ export default File;`);
   //监听代码更改
   useEffect(() => {
     sendCodeSnippet({
-      roomId: localStorage.getItem('roomId'),
+      roomId: sessionStorage.getItem('roomId'),
       codeSnippet: code,
     });
   }, [code]);
@@ -73,8 +65,6 @@ export default File;`);
     listenForCodeSnippet(handleCodeSnippet);
     // 组件卸载时移除事件监听（重要！避免内存泄漏）
     return () => {
-      // 需要公共文件暴露 socket 实例或提供移除监听的方法
-      // 假设公共文件导出 socket，可以这样做：
       socket.off('update-codeSnippet');
     };
   }, []);

@@ -55,14 +55,13 @@ export default function HomePage() {
   });
 
   const handleRoomUpdate = (data: RoomData) => {
-    // localStorage.setItem('anotherName', data.members.filter((member) => member !== localStorage.getItem('name'))[0])
-    // dispatch(setAnotherName());
     if (data && data.members && data.members.length > 0) {
       const otherMember = data.members.filter(
-        (member) => member !== localStorage.getItem('name'),
+        (member) => member !== sessionStorage.getItem('name'),
       )[0];
       if (otherMember) {
-        localStorage.setItem('anotherName', otherMember);
+        sessionStorage.setItem('anotherName', otherMember);
+        sessionStorage.setItem('members', data.members.join(','));
         dispatch(setAnotherName());
       }
     }
@@ -80,10 +79,10 @@ export default function HomePage() {
     const { name, value } = e.target;
     setFormValues((prev) => ({ ...prev, [name]: value }));
     if (name === 'nameCreate' || name === 'name') {
-      localStorage.setItem('name', value);
+      sessionStorage.setItem('name', value);
       dispatch(setName());
     } else {
-      localStorage.setItem('roomId', value);
+      sessionStorage.setItem('roomId', value);
     }
   };
 
@@ -91,7 +90,7 @@ export default function HomePage() {
   const handleCreateRoom = () => {
     const roomCode = generateRoomCode();
     formValues.roomId = roomCode;
-    localStorage.setItem('roomId', roomCode);
+    sessionStorage.setItem('roomId', roomCode);
     dispatch(setRoomId());
     if (formValues.nameCreate === '') {
       alert('请填写你的名字');

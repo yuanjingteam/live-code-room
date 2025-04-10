@@ -1,7 +1,7 @@
-import dotenv from 'dotenv';
 import express from 'express';
 import { createServer } from 'http';
 import path from 'path';
+import dotenv from 'dotenv';
 import { createSocketIO } from 'socket.io';
 
 dotenv.config();
@@ -26,7 +26,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('chat', (payload) => {
-    io.sockets.in(payload.roomId).emit('chat', payload);
+    io.sockets.in(payload.roomId).emit('update-chat', payload);
+    console.log(payload);
   });
 
   socket.on('join_room', (payload) => {

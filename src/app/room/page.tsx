@@ -1,8 +1,8 @@
 'use client';
 import React from 'react';
 import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import { setAnotherName } from '@/store/modules/userInfoStore';
 
@@ -23,22 +23,22 @@ export default function RoomPage() {
   const [roomId, setRoomId] = React.useState('');
 
   //获取当前登录用户的信息
-  const self = localStorage.getItem('name') || '';
+  const self = sessionStorage.getItem('name') || '';
   const anotherPlayer =
     useSelector((state: any) => state.userInfo.anotherName) || '';
 
   const handleRoomUpdate = (data: RoomData) => {
-    localStorage.setItem(
+    sessionStorage.setItem(
       'anotherName',
       data.members.filter(
-        (member) => member !== localStorage.getItem('name'),
+        (member) => member !== sessionStorage.getItem('name'),
       )[0],
     );
     dispatch(setAnotherName());
   };
 
   useEffect(() => {
-    setRoomId(localStorage.getItem('roomId') || '');
+    setRoomId(sessionStorage.getItem('roomId') || '');
     listenForRoomUpdate(handleRoomUpdate);
     // joinRoom({ roomId: localStorage.getItem('roomId') || '', userName: localStorage.getItem('name') || '' });
   }, []);
@@ -77,7 +77,8 @@ export default function RoomPage() {
           <div className='w-3/4'>
             <div className='grid items-center'>
               <div className='col-start-1 col-span-3 h-[60px] items-center border-2 rounded-lg my-3 flex items-center pl-2'>
-                在线成员：{self} {anotherPlayer}
+                在线成员：<span>🟢{self}</span>{' '}
+                {anotherPlayer ? <span>🟢{anotherPlayer}</span> : null}
               </div>
               <button
                 onClick={run}
