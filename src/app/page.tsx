@@ -3,12 +3,20 @@ import Head from 'next/head';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import '@/lib/env';
 
-import { setName, setRoomId } from '@/store/modules/userInfoStore';
+import {
+  setAnotherName,
+  setName,
+  setRoomId,
+} from '@/store/modules/userInfoStore';
 
-import { joinRoom } from '../services/socketService';
+// import { listenForEvents } from '@/services/socketService';
+import { listenForRoomUpdate } from '@/services/socketService';
+import { socket } from '@/services/socketService';
+import { joinRoom } from '@/services/socketService';
 
 import CreateImg from '~/svg/CreateImg.svg';
 import JoinImg from '~/svg/JoinImg.svg';
@@ -35,10 +43,36 @@ export default function HomePage() {
     nameCreate: string;
   }
 
+  interface RoomData {
+    roomId: string;
+    members: string[];
+  }
+
   const [formValues, setFormValues] = useState<RoomFormValues>({
     name: '',
     roomId: '',
     nameCreate: '',
+  });
+
+  const handleRoomUpdate = (data: RoomData) => {
+    // localStorage.setItem('anotherName', data.members.filter((member) => member !== localStorage.getItem('name'))[0])
+    // dispatch(setAnotherName());
+    if (data && data.members && data.members.length > 0) {
+      const otherMember = data.members.filter(
+        (member) => member !== localStorage.getItem('name'),
+      )[0];
+      if (otherMember) {
+        localStorage.setItem('anotherName', otherMember);
+        dispatch(setAnotherName());
+      }
+    }
+  };
+
+  useEffect(() => {
+    listenForRoomUpdate(handleRoomUpdate);
+    return () => {
+      socket.off('room_update');
+    };
   });
 
   // 处理名字输入框变化
@@ -56,6 +90,7 @@ export default function HomePage() {
   // 处理创建房间的逻辑
   const handleCreateRoom = () => {
     const roomCode = generateRoomCode();
+    formValues.roomId = roomCode;
     localStorage.setItem('roomId', roomCode);
     dispatch(setRoomId());
     if (formValues.nameCreate === '') {
@@ -63,8 +98,8 @@ export default function HomePage() {
       return;
     }
     // 在这里处理创建房间的逻辑
-    router.push('/room');
     joinRoom({ roomId: roomCode, userName: formValues.nameCreate });
+    router.push('/room');
   };
 
   //处理加入房间的逻辑
@@ -73,8 +108,8 @@ export default function HomePage() {
       alert('请填写你的名字和房间号');
       return;
     }
-    router.push('/room');
     joinRoom({ roomId: formValues.roomId, userName: formValues.name });
+    router.push('/room');
   };
 
   //生成邀请链接

@@ -4,7 +4,11 @@ import CodeMirror from '@uiw/react-codemirror';
 import React from 'react';
 import { useEffect, useState } from 'react';
 
-import { listenForEvents } from '@/services/socketService';
+// import { listenForEvents } from '@/services/socketService';
+import {
+  listenForCodeSnippet,
+  listenForRoomUpdate,
+} from '@/services/socketService';
 import { sendCodeSnippet } from '@/services/socketService';
 import { socket } from '@/services/socketService';
 
@@ -20,6 +24,11 @@ export default function CodeMirrorComponent(props: object) {
     roomId: string;
     codeSnippet: string;
   }
+  // interface RoomData {
+  //   roomId: string;
+  //   members: string[];
+  // }
+
   const [state, setState] = useState<State>({
     code: '',
     codeComponent: null,
@@ -38,8 +47,6 @@ export default File;`);
 
   // 定义回调函数
   const handleCodeSnippet = (payload: codeType) => {
-    console.log('更新11111');
-
     setCode(payload.codeSnippet); // 更新代码状态
   };
 
@@ -63,11 +70,7 @@ export default File;`);
 
   //实时获取更新过后的代码
   useEffect(() => {
-    // 传递回调函数对象
-    listenForEvents({
-      onCodeSnippet: handleCodeSnippet,
-    });
-
+    listenForCodeSnippet(handleCodeSnippet);
     // 组件卸载时移除事件监听（重要！避免内存泄漏）
     return () => {
       // 需要公共文件暴露 socket 实例或提供移除监听的方法

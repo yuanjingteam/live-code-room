@@ -1,12 +1,14 @@
 'use client';
 import React from 'react';
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+
+import { setAnotherName } from '@/store/modules/userInfoStore';
 
 import ChatCom from '@/app/components/chat';
 import CodeMirrorComponent from '@/app/components/codeMirror';
-import { socket } from '@/services/socketService';
-import { listenForEvents } from '@/services/socketService';
-// import { joinRoom } from '@/services/socketService';
+import { listenForRoomUpdate } from '@/services/socketService';
 
 export default function RoomPage() {
   interface RoomData {
@@ -14,41 +16,31 @@ export default function RoomPage() {
     members: string[];
   }
 
-  interface responseData {
-    success: boolean;
-    roomData: RoomData;
-  }
+  const dispatch = useDispatch();
 
   const [isRun, setIsRun] = React.useState(false);
   //获取邀请链接
   const [roomId, setRoomId] = React.useState('');
 
-  //获取房间信息
-  const [roomData, setRoomData] = React.useState<RoomData>({
-    roomId: '',
-    members: [],
-  });
-
   //获取当前登录用户的信息
   const self = localStorage.getItem('name') || '';
+  const anotherPlayer =
+    useSelector((state: any) => state.userInfo.anotherName) || '';
 
-  const handleRoomUpdate = (data: responseData) => {
-    console.log('111');
-
-    if (data.success) {
-      setRoomData(data.roomData);
-    }
+  const handleRoomUpdate = (data: RoomData) => {
+    localStorage.setItem(
+      'anotherName',
+      data.members.filter(
+        (member) => member !== localStorage.getItem('name'),
+      )[0],
+    );
+    dispatch(setAnotherName());
   };
 
   useEffect(() => {
     setRoomId(localStorage.getItem('roomId') || '');
+    listenForRoomUpdate(handleRoomUpdate);
     // joinRoom({ roomId: localStorage.getItem('roomId') || '', userName: localStorage.getItem('name') || '' });
-    listenForEvents({
-      onRoomUpdate: handleRoomUpdate,
-    });
-    return () => {
-      socket.off('room_update');
-    };
   }, []);
 
   //运行代码
@@ -85,7 +77,7 @@ export default function RoomPage() {
           <div className='w-3/4'>
             <div className='grid items-center'>
               <div className='col-start-1 col-span-3 h-[60px] items-center border-2 rounded-lg my-3 flex items-center pl-2'>
-                在线成员：{roomData.members[0]} {roomData.members[1]}
+                在线成员：{self} {anotherPlayer}
               </div>
               <button
                 onClick={run}
