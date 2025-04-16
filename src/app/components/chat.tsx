@@ -18,7 +18,9 @@ export default function ChatCom() {
   const [userName, setUserName] = useState(
     sessionStorage.getItem('name') || '',
   );
-  const [chatMessages, setChatMessages] = useState<chatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<chatMessage[]>(
+    JSON.parse(localStorage.getItem('chatMessages') || '[]') || [],
+  );
   const [roomId, setRoomId] = useState(sessionStorage.getItem('roomId') || '');
 
   //获取到输入框的内容
@@ -61,6 +63,7 @@ export default function ChatCom() {
 
   useEffect(() => {
     scrollChatBottom();
+    localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
   }, [chatMessages]);
 
   return (

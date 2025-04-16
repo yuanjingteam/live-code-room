@@ -74,6 +74,7 @@ export default function RoomPage() {
       userName: sessionStorage.getItem('name') || '',
     });
     sessionStorage.clear();
+    localStorage.clear();
     router.push('/');
     return () => {
       socket.off('leave_room');

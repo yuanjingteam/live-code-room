@@ -21,11 +21,8 @@ const rooms = new Map();
 const socketToRoom = new Map(); // 用于跟踪 socket 所在的房间
 
 io.on('connection', (socket) => {
-  console.log('New connection:', socket.id);
-
   // 监听断开连接事件
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
     const roomId = socketToRoom.get(socket.id);
     if (roomId) {
       // 从房间中移除用户
@@ -33,12 +30,6 @@ io.on('connection', (socket) => {
         const userName = socket.userName;
         if (userName) {
           rooms.get(roomId).delete(userName);
-          console.log('User left room:', {
-            roomId,
-            userName,
-            remainingMembers: Array.from(rooms.get(roomId)),
-          });
-
           // 如果房间还有成员，广播更新
           if (rooms.get(roomId).size > 0) {
             const roomData = {
@@ -62,7 +53,6 @@ io.on('connection', (socket) => {
 
   socket.on('chat', (payload) => {
     io.sockets.in(payload.roomId).emit('update-chat', payload);
-    console.log(payload);
   });
 
   socket.on('leave_room', (payload) => {

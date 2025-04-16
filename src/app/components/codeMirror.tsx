@@ -26,13 +26,7 @@ export default function CodeMirrorComponent(props: object) {
     codeComponent: null,
   });
 
-  const [code, setCode] = useState<string>(`import React from "react";
-
-const File = () => {
-  return <h1 style={ { background: "red", color: "#fff" } }> This is a test </h1>;
-};
-
-export default File;`);
+  const [code, setCode] = useState<string>(localStorage.getItem('code') || '');
   const [output, setOutput] = useState<string>('');
 
   const [isRun, setIsRun] = useState<boolean>(props.message);
@@ -40,6 +34,8 @@ export default File;`);
   // 定义回调函数
   const handleCodeSnippet = (payload: codeType) => {
     setCode(payload.codeSnippet); // 更新代码状态
+    localStorage.setItem('code', payload.codeSnippet);
+    console.log(code, '6666');
   };
 
   useEffect(() => {
