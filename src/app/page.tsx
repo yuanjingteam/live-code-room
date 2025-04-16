@@ -65,6 +65,9 @@ export default function HomePage() {
         dispatch(setAnotherName());
       }
     }
+    if (!sessionStorage.getItem('name')) {
+      socket.connect();
+    }
   };
 
   useEffect(() => {
