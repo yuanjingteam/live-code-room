@@ -1,13 +1,14 @@
-import dotenv from 'dotenv';
-import express from 'express';
-import { createServer } from 'http';
-import path from 'path';
-import { Server } from 'socket.io';
+const dotenv = require('dotenv');
+const express = require('express');
+const { createServer } = require('http');
+const path = require('path');
+const { Server } = require('socket.io');
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
+
 
 // Socket.IO 初始化（ES模块方式）
 const io = new Server(server, {
@@ -36,7 +37,10 @@ io.on('connection', (socket) => {
               roomId,
               members: Array.from(rooms.get(roomId)),
             };
-            io.to(roomId).emit('room_update', roomData);
+            setTimeout(() => {
+              io.to(roomId).emit('room_update', roomData);
+            })
+
           } else {
             // 如果房间空了，删除房间
             rooms.delete(roomId);

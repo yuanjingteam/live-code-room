@@ -15,13 +15,14 @@ export default function ChatCom() {
 
   //定义一个状态变量，用于存储输入框的内容
   const [message, setMessage] = useState('');
-  const [userName, setUserName] = useState(
-    sessionStorage.getItem('name') || '',
-  );
-  const [chatMessages, setChatMessages] = useState<chatMessage[]>(
-    JSON.parse(localStorage.getItem('chatMessages') || '[]') || [],
-  );
-  const [roomId, setRoomId] = useState(sessionStorage.getItem('roomId') || '');
+  const [userName, setUserName] = useState('');
+  const [chatMessages, setChatMessages] = useState<chatMessage[]>([]);
+  const [roomId, setRoomId] = useState('');
+
+  useEffect(() => {
+    setUserName(sessionStorage.getItem('name') || '');
+    setRoomId(sessionStorage.getItem('roomId') || '');
+  })
 
   //获取到输入框的内容
   const updateMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +42,8 @@ export default function ChatCom() {
 
   //更新聊天框的内容
   const handleChatUpdate = (payload: chatMessage) => {
-    setChatMessages((prevMessages) => [...prevMessages, payload]);
+    sessionStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+    setChatMessages((prevMessages: chatMessage[]) => [...prevMessages, payload]);
   };
 
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function ChatCom() {
 
   useEffect(() => {
     scrollChatBottom();
-    localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+    sessionStorage.setItem('chatMessages', JSON.stringify(chatMessages));
   }, [chatMessages]);
 
   return (
@@ -82,9 +84,8 @@ export default function ChatCom() {
               className={`flex mb-4 ${isMe ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[70%] rounded-lg p-2 ${
-                  isMe ? 'bg-blue-500 text-white' : 'bg-white text-black'
-                }`}
+                className={`max-w-[70%] rounded-lg p-2 ${isMe ? 'bg-blue-500 text-white' : 'bg-white text-black'
+                  }`}
               >
                 <div className='text-sm mb-1'>
                   {isMe ? 'Me' : chat.userName}

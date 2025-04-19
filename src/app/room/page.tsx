@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { setAnotherName } from '@/store/modules/userInfoStore';
@@ -9,7 +9,7 @@ import { setAnotherName } from '@/store/modules/userInfoStore';
 import ChatCom from '@/app/components/chat';
 import CodeMirrorComponent from '@/app/components/codeMirror';
 import { listenForRoomUpdate, socket } from '@/services/socketService';
-import { joinRoom, leaveRoom } from '@/services/socketService';
+import { leaveRoom } from '@/services/socketService';
 
 export default function RoomPage() {
   interface RoomData {
@@ -20,15 +20,13 @@ export default function RoomPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const [isRun, setIsRun] = React.useState(false);
+  const [isRun, setIsRun] = useState(false);
   //获取邀请链接
-  const [roomId, setRoomId] = React.useState('');
+  const [roomId, setRoomId] = useState('');
 
   //获取当前登录用户的信息
-  const self = sessionStorage.getItem('name') || '';
-  const [anotherPlayer, setAnotherPlayer] = React.useState(
-    sessionStorage.getItem('anotherName') || '',
-  );
+  const [self, setSelf] = useState('');
+  const [anotherPlayer, setAnotherPlayer] = useState('');
 
   const handleRoomUpdate = (data: RoomData) => {
     console.log(data, '999');
@@ -39,14 +37,24 @@ export default function RoomPage() {
         (member) => member !== sessionStorage.getItem('name'),
       )[0] || '',
     );
+    console.log(anotherPlayer, 'ppp');
     setAnotherPlayer(sessionStorage.getItem('anotherName') || '');
     dispatch(setAnotherName());
   };
 
   useEffect(() => {
+    // console.log(socket, '重连 ');
+    socket.on('connect', () => {
+      console.log('尝试重连');
+      socket.emit('join_room', { roomId: sessionStorage.getItem('roomId') || '', userName: sessionStorage.getItem('name') || '' });
+    })
+  }, [socket])
+
+  useEffect(() => {
     setRoomId(sessionStorage.getItem('roomId') || '');
+    setSelf(sessionStorage.getItem('name') || '');
     listenForRoomUpdate(handleRoomUpdate);
-    // joinRoom({ roomId: localStorage.getItem('roomId') || '', userName: localStorage.getItem('name') || '' });
+    setAnotherPlayer(sessionStorage.getItem('anotherName') || '');
     return () => {
       socket.off('room_update');
     };

@@ -59,9 +59,8 @@ export default function HomePage() {
       const otherMember = data.members.filter(
         (member) => member !== sessionStorage.getItem('name'),
       )[0];
-      if (otherMember) {
+      if (otherMember && sessionStorage.getItem('name')) {
         sessionStorage.setItem('anotherName', otherMember);
-        sessionStorage.setItem('members', data.members.join(','));
         dispatch(setAnotherName());
       }
     }
@@ -101,7 +100,7 @@ export default function HomePage() {
     }
     // 在这里处理创建房间的逻辑
     joinRoom({ roomId: roomCode, userName: formValues.nameCreate });
-    router.push('/room');
+    router.push(`/room?roomId=${roomCode}`);
   };
 
   //处理加入房间的逻辑
@@ -111,7 +110,7 @@ export default function HomePage() {
       return;
     }
     joinRoom({ roomId: formValues.roomId, userName: formValues.name });
-    router.push('/room');
+    router.push(`/room?roomId=${formValues.roomId}`);
   };
 
   //生成邀请链接

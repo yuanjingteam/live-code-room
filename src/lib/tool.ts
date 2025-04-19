@@ -24,7 +24,6 @@ export const evalCode = (code: string): any => {
   );
   const exports = {};
   fn.call(null, _require, exports);
-  console.log(exports, 'exports');
 
   return exports.default;
 };

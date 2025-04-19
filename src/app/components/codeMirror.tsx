@@ -26,16 +26,15 @@ export default function CodeMirrorComponent(props: object) {
     codeComponent: null,
   });
 
-  const [code, setCode] = useState<string>(localStorage.getItem('code') || '');
+  const [code, setCode] = useState<string>('');
   const [output, setOutput] = useState<string>('');
 
   const [isRun, setIsRun] = useState<boolean>(props.message);
 
   // 定义回调函数
-  const handleCodeSnippet = (payload: codeType) => {
-    setCode(payload.codeSnippet); // 更新代码状态
-    localStorage.setItem('code', payload.codeSnippet);
-    console.log(code, '6666');
+  const handleCodeSnippet = (payload: codeType) => {    
+    sessionStorage.setItem('code', payload.codeSnippet);
+    setCode(sessionStorage.getItem('code') as string); // 更新代码状态
   };
 
   useEffect(() => {
