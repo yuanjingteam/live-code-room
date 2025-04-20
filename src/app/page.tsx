@@ -32,7 +32,15 @@ import JoinImg from '~/svg/JoinImg.svg';
 // Before you begin editing, follow all comments with `STARTERCONF`,
 // to customize the default configuration.
 
-export default function HomePage() {
+type Props = {
+  searchParams: {
+    roomId?: string;
+  };
+};
+
+export default function HomePage({ searchParams }: Props) {
+  const roomIdPar = searchParams.roomId;
+
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -71,6 +79,7 @@ export default function HomePage() {
 
   useEffect(() => {
     listenForRoomUpdate(handleRoomUpdate);
+    // sessionStorage.setItem('roomId', roomIdPar? formValues.roomId : roomIdPar || '');
     return () => {
       socket.off('room_update');
     };
@@ -83,8 +92,9 @@ export default function HomePage() {
     if (name === 'nameCreate' || name === 'name') {
       sessionStorage.setItem('name', value);
       dispatch(setName());
-    } else {
+    }else {
       sessionStorage.setItem('roomId', value);
+      dispatch(setRoomId());
     }
   };
 
@@ -105,12 +115,12 @@ export default function HomePage() {
 
   //处理加入房间的逻辑
   const handleJoinRoom = () => {
-    if (formValues.name === '' || formValues.roomId === '') {
-      alert('请填写你的名字和房间号');
+    if (formValues.name === '') {
+      alert('请填写你的名字');
       return;
     }
-    joinRoom({ roomId: formValues.roomId, userName: formValues.name });
-    router.push(`/room?roomId=${formValues.roomId}`);
+    joinRoom({ roomId: roomIdPar || formValues.roomId, userName: formValues.name });
+    router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
   };
 
   //生成邀请链接
@@ -148,6 +158,7 @@ export default function HomePage() {
               className='w-full my-5 rounded-lg'
               name='roomId'
               onChange={handleChange}
+              value={roomIdPar}
             />
             <button
               className='w-full h-10 border rounded-lg bg-lime-500 hover:bg-lime-600'

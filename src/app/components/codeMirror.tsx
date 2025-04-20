@@ -32,7 +32,8 @@ export default function CodeMirrorComponent(props: object) {
   const [isRun, setIsRun] = useState<boolean>(props.message);
 
   // 定义回调函数
-  const handleCodeSnippet = (payload: codeType) => {    
+  const handleCodeSnippet = (payload: codeType) => {
+
     sessionStorage.setItem('code', payload.codeSnippet);
     setCode(sessionStorage.getItem('code') as string); // 更新代码状态
   };
@@ -83,11 +84,11 @@ export default function CodeMirrorComponent(props: object) {
         theme='dark'
         height='680px'
       />
-      <div style={{ width: '50%', background: '#fff' }}>
+      {/* <div style={{ width: '50%', background: '#fff' }}>
         {state.codeComponent
           ? React.createElement(state.codeComponent)
           : output}
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -16,6 +16,10 @@ const io = new Server(server, {
   cors: {
     origin: '*',
   },
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 24 * 60 * 60 * 1000, // 永久保留会话
+    skipMiddlewares: true,             // 恢复时跳过中间件（可选）
+  }
 });
 
 const rooms = new Map();
@@ -23,32 +27,38 @@ const socketToRoom = new Map(); // 用于跟踪 socket 所在的房间
 
 io.on('connection', (socket) => {
   // 监听断开连接事件
-  socket.on('disconnect', () => {
-    const roomId = socketToRoom.get(socket.id);
-    if (roomId) {
-      // 从房间中移除用户
-      if (rooms.has(roomId)) {
-        const userName = socket.userName;
-        if (userName) {
-          rooms.get(roomId).delete(userName);
-          // 如果房间还有成员，广播更新
-          if (rooms.get(roomId).size > 0) {
-            const roomData = {
-              roomId,
-              members: Array.from(rooms.get(roomId)),
-            };
-            setTimeout(() => {
-              io.to(roomId).emit('room_update', roomData);
-            })
+  socket.on('disconnect', (reason) => {
+    console.log(reason, 'reason');
+    if (reason === 'transport close') {
+      console.log('用户偶然关闭');
 
-          } else {
-            // 如果房间空了，删除房间
-            rooms.delete(roomId);
+    } else {
+      const roomId = socketToRoom.get(socket.id);
+      if (roomId) {
+        // 从房间中移除用户
+        if (rooms.has(roomId)) {
+          const userName = socket.userName;
+          if (userName) {
+            rooms.get(roomId).delete(userName);
+            // 如果房间还有成员，广播更新
+            if (rooms.get(roomId).size > 0) {
+              const roomData = {
+                roomId,
+                members: Array.from(rooms.get(roomId)),
+              };
+                io.to(roomId).emit('room_update', roomData);
+
+            } else {
+              // 如果房间空了，删除房间
+              rooms.delete(roomId);
+            }
           }
         }
+        socketToRoom.delete(socket.id);
       }
-      socketToRoom.delete(socket.id);
     }
+
+
   });
 
   socket.on('code-snippet', (payload) => {
