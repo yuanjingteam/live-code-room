@@ -36,8 +36,6 @@ export default function RoomPage() {
   const [isClear, setIsClear] = useState(false);
 
   const handleRoomUpdate = (data: RoomData) => {
-    // debugger;
-    console.log(data, '999');
     sessionStorage.setItem(
       'anotherName',
       data.members.filter(
@@ -88,7 +86,6 @@ export default function RoomPage() {
     });
     sessionStorage.clear();
     localStorage.clear();
-    // socket.disconnect();
     router.push('/');
     return () => {
       socket.off('leave_room');

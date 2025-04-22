@@ -28,9 +28,7 @@ export default function ChatCom(props: object) {
 
   //判断是否清空聊天记录
   useEffect(() => {
-    // debugger;
     setChatMessages(JSON.parse(sessionStorage.getItem('chatMessages') || '[]'));
-    console.log(props.isClear, '0000');
     if (props.isClear) {
       setChatMessages([]);
     }
@@ -39,7 +37,6 @@ export default function ChatCom(props: object) {
   //获取到输入框的内容
   const updateMessage = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    //将输入框的内容赋值给状态变量
     setMessage(e.target.value);
   };
 
@@ -82,7 +79,6 @@ export default function ChatCom(props: object) {
 
   useEffect(() => {
     scrollChatBottom();
-    // sessionStorage.setItem('chatMessages', JSON.stringify(chatMessages));
   }, [chatMessages]);
 
   return (

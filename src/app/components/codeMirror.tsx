@@ -35,13 +35,11 @@ export default function CodeMirrorComponent(props: object) {
   const handleCodeSnippet = (payload: codeType) => {
     console.log(payload, code, '接收到的代码块内容');
       sessionStorage.setItem('code', payload.codeSnippet);
-      setCode(sessionStorage.getItem('code') as string); // 更新代码状态
+      setCode(sessionStorage.getItem('code') as string);
 
   };
 
   useEffect(() => {
-    // 使用 require 读取代码
-    // const rawCode = require(`!raw-loader!../../../src/lib/file`).default;
     setIsRun(true);
     if (isRun) {
       setCode(code);
@@ -60,8 +58,7 @@ export default function CodeMirrorComponent(props: object) {
   //实时获取更新过后的代码
   useEffect(() => {
     listenForCodeSnippet(handleCodeSnippet);
-    setCode(sessionStorage.getItem('code') || ''); // 更新代码状态
-    // 组件卸载时移除事件监听（重要！避免内存泄漏）
+    setCode(sessionStorage.getItem('code') || '');
     return () => {
       socket.off('update-codeSnippet');
     };

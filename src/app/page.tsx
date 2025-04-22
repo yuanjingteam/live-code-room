@@ -79,7 +79,6 @@ export default function HomePage({ searchParams }: Props) {
 
   useEffect(() => {
     listenForRoomUpdate(handleRoomUpdate);
-    // sessionStorage.setItem('roomId', roomIdPar? formValues.roomId : roomIdPar || '');
     return () => {
       socket.off('room_update');
     };
@@ -93,8 +92,6 @@ export default function HomePage({ searchParams }: Props) {
       sessionStorage.setItem('name', value);
       dispatch(setName());
     } else {
-      console.log(value, 'roomId');
-
       sessionStorage.setItem('roomId', value);
       dispatch(setRoomId());
     }
@@ -110,7 +107,6 @@ export default function HomePage({ searchParams }: Props) {
       alert('请填写你的名字');
       return;
     }
-    // 在这里处理创建房间的逻辑
     joinRoom({ roomId: roomCode, userName: formValues.nameCreate });
     router.push(`/room?roomId=${roomCode}`);
   };
