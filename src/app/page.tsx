@@ -92,7 +92,9 @@ export default function HomePage({ searchParams }: Props) {
     if (name === 'nameCreate' || name === 'name') {
       sessionStorage.setItem('name', value);
       dispatch(setName());
-    }else {
+    } else {
+      console.log(value, 'roomId');
+
       sessionStorage.setItem('roomId', value);
       dispatch(setRoomId());
     }
@@ -120,6 +122,9 @@ export default function HomePage({ searchParams }: Props) {
       return;
     }
     joinRoom({ roomId: roomIdPar || formValues.roomId, userName: formValues.name });
+    if (roomIdPar) {
+      sessionStorage.setItem('roomId', roomIdPar);
+    }
     router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
   };
 

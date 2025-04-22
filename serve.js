@@ -1,3 +1,4 @@
+const { log } = require('console');
 const dotenv = require('dotenv');
 const express = require('express');
 const { createServer } = require('http');
@@ -16,49 +17,65 @@ const io = new Server(server, {
   cors: {
     origin: '*',
   },
-  connectionStateRecovery: {
-    maxDisconnectionDuration: 24 * 60 * 60 * 1000, // 永久保留会话
-    skipMiddlewares: true,             // 恢复时跳过中间件（可选）
-  }
+  // connectionStateRecovery: {
+  //   maxDisconnectionDuration: 24 * 60 * 60 * 1000, // 永久保留会话
+  //   skipMiddlewares: true,             // 恢复时跳过中间件（可选）
+  // }
 });
 
 const rooms = new Map();
 const socketToRoom = new Map(); // 用于跟踪 socket 所在的房间
+const roomTimers = new Map(); // 存储每个房间的定时器 ID
 
 io.on('connection', (socket) => {
-  // 监听断开连接事件
-  socket.on('disconnect', (reason) => {
-    console.log(reason, 'reason');
-    if (reason === 'transport close') {
-      console.log('用户偶然关闭');
 
-    } else {
-      const roomId = socketToRoom.get(socket.id);
-      if (roomId) {
-        // 从房间中移除用户
-        if (rooms.has(roomId)) {
-          const userName = socket.userName;
-          if (userName) {
-            rooms.get(roomId).delete(userName);
-            // 如果房间还有成员，广播更新
-            if (rooms.get(roomId).size > 0) {
-              const roomData = {
-                roomId,
-                members: Array.from(rooms.get(roomId)),
-              };
-                io.to(roomId).emit('room_update', roomData);
+  const handleUserLeave = () => {
+    const roomId = socketToRoom.get(socket.id);
 
-            } else {
-              // 如果房间空了，删除房间
-              rooms.delete(roomId);
-            }
+    if (roomId) {
+
+      // 从房间中移除用户
+      if (rooms.has(roomId)) {
+
+        const userName = socket.userName;
+        if (userName) {
+
+          rooms.get(roomId).delete(userName);
+          // 如果房间还有成员，广播更新
+          if (rooms.get(roomId).size > 0) {
+            const roomData = {
+              roomId,
+              members: Array.from(rooms.get(roomId)),
+            };
+
+            io.to(roomId).emit('room_update', roomData);
+
+          } else {
+            // 如果房间空了，删除房间
+            rooms.delete(roomId);
           }
         }
-        socketToRoom.delete(socket.id);
       }
+      socketToRoom.delete(socket.id);
     }
+  }
 
+  // 监听断开连接事件
+  socket.on('disconnect', (reason) => {
+    if (reason === 'transport close') {
+      const roomId = socketToRoom.get(socket.id);
+      if (roomId) {
+        // 为该房间设置定时器
+        const timer = setTimeout(() => {
+          handleUserLeave();
+        }, 5000);
 
+        // 将定时器 ID 存储到 roomTimers 中
+        roomTimers.set(roomId, timer);
+      }
+    } else {
+      handleUserLeave();
+    }
   });
 
   socket.on('code-snippet', (payload) => {
@@ -112,7 +129,17 @@ io.on('connection', (socket) => {
   });
 
   socket.on('join_room', (payload) => {
+
     try {
+
+      const roomId1 = socketToRoom.get(socket.id);
+      if (roomId1 && roomTimers.has(roomId1)) {
+        // 清除该房间的定时器
+        clearTimeout(roomTimers.get(roomId1));
+        roomTimers.delete(roomId1); // 从映射中移除定时器
+      }
+
+
       // 2. 检查是否需要加入新房间
       if (payload.roomId) {
         socketToRoom.set(socket.id, payload.roomId);

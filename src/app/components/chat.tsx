@@ -28,6 +28,8 @@ export default function ChatCom(props: object) {
 
   //判断是否清空聊天记录
   useEffect(() => {
+    // debugger;
+    setChatMessages(JSON.parse(sessionStorage.getItem('chatMessages') || '[]'));
     console.log(props.isClear, '0000');
     if (props.isClear) {
       setChatMessages([]);
@@ -52,8 +54,13 @@ export default function ChatCom(props: object) {
 
   //更新聊天框的内容
   const handleChatUpdate = (payload: chatMessage) => {
-    sessionStorage.setItem('chatMessages', JSON.stringify(chatMessages));
-    setChatMessages((prevMessages: chatMessage[]) => [...prevMessages, payload]);
+    console.log(payload, 'payload');
+    setChatMessages((prevMessages) => {
+      const newMessages = [...prevMessages, payload];
+      sessionStorage.setItem('chatMessages', JSON.stringify(newMessages));
+      return newMessages;
+    });
+
   };
 
   useEffect(() => {
@@ -75,7 +82,7 @@ export default function ChatCom(props: object) {
 
   useEffect(() => {
     scrollChatBottom();
-    sessionStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+    // sessionStorage.setItem('chatMessages', JSON.stringify(chatMessages));
   }, [chatMessages]);
 
   return (

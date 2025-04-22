@@ -36,6 +36,7 @@ export default function RoomPage() {
   const [isClear, setIsClear] = useState(false);
 
   const handleRoomUpdate = (data: RoomData) => {
+    // debugger;
     console.log(data, '999');
     sessionStorage.setItem(
       'anotherName',
@@ -81,14 +82,13 @@ export default function RoomPage() {
 
   //退出房间
   const exitRoom = () => {
-    // socket.disconnect();
     leaveRoom({
       roomId: sessionStorage.getItem('roomId') || '',
       userName: sessionStorage.getItem('name') || '',
     });
     sessionStorage.clear();
     localStorage.clear();
-    socket.disconnect();
+    // socket.disconnect();
     router.push('/');
     return () => {
       socket.off('leave_room');
