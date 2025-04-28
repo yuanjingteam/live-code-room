@@ -30,7 +30,7 @@ export default function RoomPage() {
 
   //获取当前登录用户的信息
   const [self, setSelf] = useState('');
-  const [anotherPlayer, setAnotherPlayer] = useState('');
+  const [anotherPlayer, setAnotherPlayer] = useState([]);
 
   //聊天记录是否清空
   const [isClear, setIsClear] = useState(false);
@@ -38,15 +38,15 @@ export default function RoomPage() {
   const handleRoomUpdate = (data: RoomData) => {
     sessionStorage.setItem(
       'anotherName',
-      data.members.filter(
+      JSON.stringify(data.members.filter(
         (member) => member !== sessionStorage.getItem('name'),
-      )[0] || '',
+      ) || []),
     );
     if (data.members.length === 1) {
       sessionStorage.removeItem('chatMessages');
       setIsClear(true);
     }
-    setAnotherPlayer(sessionStorage.getItem('anotherName') || '');
+    setAnotherPlayer(JSON.parse(sessionStorage.getItem('anotherName') || '[]'));
     dispatch(setAnotherName());
   };
 
@@ -58,7 +58,7 @@ export default function RoomPage() {
     setRoomId(sessionStorage.getItem('roomId') || '');
     setSelf(sessionStorage.getItem('name') || '');
     listenForRoomUpdate(handleRoomUpdate);
-    setAnotherPlayer(sessionStorage.getItem('anotherName') || '');
+    setAnotherPlayer(JSON.parse(sessionStorage.getItem('anotherName') || '[]'));
     return () => {
       socket.off('room_update');
     };
@@ -145,12 +145,14 @@ export default function RoomPage() {
                       <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                       <span className="text-emerald-700">{self}</span>
                     </div>
-                    {anotherPlayer && (
-                      <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1 rounded-full">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <span className="text-emerald-700">{anotherPlayer}</span>
-                      </div>
-                    )}
+                    {anotherPlayer && anotherPlayer.map((player, index) => {
+                      return (
+                        <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1 rounded-full" key={index}>
+                          <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                          <span className="text-emerald-700">{player}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
                 <button

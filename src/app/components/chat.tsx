@@ -92,7 +92,7 @@ export default function ChatCom(props: object) {
       {/* 聊天消息区域 */}
       <div
         className="flex-1 p-4 overflow-y-auto w-96 h-2/3 bg-slate-300  overflow-y-auto bg-[url('/images/code-img.jpg')] bg-cover bg-center bg-no-repeat
-w-full bg-white rounded-lg shadow-md h-[750px] [&_*]:scrollbar-thin [&_*]:scrollbar-thumb-emerald-500 [&_*]:scrollbar-track-emerald-50 [&_*]:scrollbar-thumb-rounded-full"
+w-full bg-white shadow-md h-[750px] [&_*]:scrollbar-thin [&_*]:scrollbar-thumb-emerald-500 [&_*]:scrollbar-track-emerald-50 [&_*]:scrollbar-thumb-rounded-full"
         id='chat-box'
       >
         {chatMessages.map((chat, index) => {
