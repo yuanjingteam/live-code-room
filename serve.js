@@ -17,10 +17,6 @@ const io = new Server(server, {
   cors: {
     origin: '*',
   },
-  // connectionStateRecovery: {
-  //   maxDisconnectionDuration: 24 * 60 * 60 * 1000, // 永久保留会话
-  //   skipMiddlewares: true,             // 恢复时跳过中间件（可选）
-  // }
 });
 
 const rooms = new Map();
@@ -131,7 +127,6 @@ io.on('connection', (socket) => {
   socket.on('join_room', (payload) => {
 
     try {
-
       const roomId1 = socketToRoom.get(socket.id);
       if (roomId1 && roomTimers.has(roomId1)) {
         // 清除该房间的定时器

@@ -8,7 +8,11 @@ import { sendChatMessage } from '@/services/socketService';
 import { listenForChat } from '@/services/socketService';
 import { socket } from '@/services/socketService';
 
-export default function ChatCom(props: object) {
+interface ChatProps {
+  isClear: boolean;
+}
+
+export default function ChatCom(props: ChatProps) {
   interface chatMessage {
     userName: string;
     message: string;

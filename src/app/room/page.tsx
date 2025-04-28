@@ -30,35 +30,56 @@ export default function RoomPage() {
 
   //获取当前登录用户的信息
   const [self, setSelf] = useState('');
-  const [anotherPlayer, setAnotherPlayer] = useState([]);
+  const [anotherPlayer, setAnotherPlayer] = useState<string[]>([]);
 
   //聊天记录是否清空
   const [isClear, setIsClear] = useState(false);
 
   const handleRoomUpdate = (data: RoomData) => {
-    sessionStorage.setItem(
-      'anotherName',
-      JSON.stringify(data.members.filter(
-        (member) => member !== sessionStorage.getItem('name'),
-      ) || []),
+    // 过滤出其他成员
+    const otherMembers = data.members.filter(
+      (member) => member !== sessionStorage.getItem('name')
     );
+
+    // 将数组转换为 JSON 字符串存储
+    sessionStorage.setItem('anotherName', JSON.stringify(otherMembers));
+
     if (data.members.length === 1) {
       sessionStorage.removeItem('chatMessages');
       setIsClear(true);
     }
-    setAnotherPlayer(JSON.parse(sessionStorage.getItem('anotherName') || '[]'));
+
+    // 更新状态
+    setAnotherPlayer(otherMembers);
     dispatch(setAnotherName());
   };
 
   useEffect(() => {
-    joinRoom({ roomId: sessionStorage.getItem('roomId') || '', userName: sessionStorage.getItem('name') || '' });
-  }, [])
+    joinRoom({
+      roomId: sessionStorage.getItem('roomId') || '',
+      userName: sessionStorage.getItem('name') || ''
+    });
+  }, []);
 
   useEffect(() => {
     setRoomId(sessionStorage.getItem('roomId') || '');
     setSelf(sessionStorage.getItem('name') || '');
     listenForRoomUpdate(handleRoomUpdate);
-    setAnotherPlayer(JSON.parse(sessionStorage.getItem('anotherName') || '[]'));
+
+    // 从 sessionStorage 获取并解析数据
+    const storedAnotherName = sessionStorage.getItem('anotherName');
+    if (storedAnotherName) {
+      try {
+        const parsedData = JSON.parse(storedAnotherName);
+        setAnotherPlayer(parsedData);
+      } catch (error) {
+        console.error('Error parsing anotherName:', error);
+        setAnotherPlayer([]);
+      }
+    } else {
+      setAnotherPlayer([]);
+    }
+
     return () => {
       socket.off('room_update');
     };

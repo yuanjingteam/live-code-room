@@ -10,7 +10,11 @@ import { socket } from '@/services/socketService';
 
 import { evalCode } from '../../lib/tool';
 
-export default function CodeMirrorComponent(props: object) {
+interface CodeMirrorProps {
+  message: boolean;
+}
+
+export default function CodeMirrorComponent(props: CodeMirrorProps) {
   interface State {
     code: string;
     codeComponent: React.ReactNode | null;
@@ -34,8 +38,8 @@ export default function CodeMirrorComponent(props: object) {
   // 定义回调函数
   const handleCodeSnippet = (payload: codeType) => {
     console.log(payload, code, '接收到的代码块内容');
-      sessionStorage.setItem('code', payload.codeSnippet);
-      setCode(sessionStorage.getItem('code') as string);
+    sessionStorage.setItem('code', payload.codeSnippet);
+    setCode(sessionStorage.getItem('code') as string);
 
   };
 
