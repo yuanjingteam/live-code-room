@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import * as React from 'react';
+import ReduxProvider from '@/store/provider';
 
 import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
@@ -20,9 +21,9 @@ export const metadata: Metadata = {
   // !STARTERCONF this is the default favicon, you can generate your own from https://realfavicongenerator.net/
   // ! copy to /favicon folder
   icons: {
-    icon: '/favicon/favicon.ico',
-    shortcut: '/favicon/favicon-16x16.png',
-    apple: '/favicon/apple-touch-icon.png',
+    icon: '/svg/logo.svg',
+    shortcut: '/svg/logo.svg',
+    apple: '/svg/logo.svg',
   },
   manifest: `/favicon/site.webmanifest`,
   openGraph: {
@@ -56,7 +57,9 @@ export default function RootLayout({
 }) {
   return (
     <html>
-      <body>{children}</body>
+      <body>
+        <ReduxProvider>{children}</ReduxProvider>
+      </body>
     </html>
   );
 }
