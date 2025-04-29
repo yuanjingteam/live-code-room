@@ -70,28 +70,42 @@ export default function CodeMirrorComponent(props: CodeMirrorProps) {
 
   const runCode = (): void => {
     try {
-      setState({ code, codeComponent: evalCode(code) });
+      const result = evalCode(code);
+      console.log(result, '运行结果');
+      setState({
+        code,
+        codeComponent: typeof result === 'function' ? result : null
+      });
+      setOutput(typeof result === 'function' ? '' : String(result));
     } catch (error: any) {
       setOutput(error.message);
     }
   };
 
   return (
-    <div>
-      <CodeMirror
-        value={code}
-        onChange={(value: string) => setCode(value)}
-        extensions={[javascript({ jsx: true })]}
-        lineNumbers={true}
-        gutters={['CodeMirror-linenumbers', 'CodeMirror-foldgutter']}
-        theme='dark'
-        height='680px'
-      />
-      {/* <div style={{ width: '50%', background: '#fff' }}>
-        {state.codeComponent
-          ? React.createElement(state.codeComponent)
-          : output}
-      </div> */}
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-hidden">
+        <CodeMirror
+          value={code}
+          onChange={(value: string) => setCode(value)}
+          extensions={[javascript({ jsx: true })]}
+          theme='dark'
+          height='700px'
+          basicSetup={{
+            lineNumbers: true,
+            foldGutter: true,
+            highlightActiveLineGutter: true,
+            highlightActiveLine: true,
+            highlightSelectionMatches: true,
+          }}
+        />
+      </div>
+      <div className="mt-4 p-4 bg-gray-800 text-white rounded-lg flex-shrink-0">
+        <h3 className="text-lg font-semibold mb-2">运行结果：</h3>
+        <div className="whitespace-pre-wrap max-h-[150px] overflow-y-auto">
+          {output || (state.codeComponent ? 'Function executed successfully' : '')}
+        </div>
+      </div>
     </div>
   );
 }

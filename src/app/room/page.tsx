@@ -152,9 +152,9 @@ export default function RoomPage() {
             </div>
           </div>
         </div>
-        <div className="container mx-auto px-4 flex gap-6">
+        <div className="container mx-auto px-4 flex gap-6 h-[calc(100vh-120px)]">
           {/* 左侧代码区域 */}
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col">
             {/* 成员信息和运行按钮 */}
             <div className="bg-white rounded-lg shadow-md p-4 mb-4">
               <div className="flex justify-between items-center">
@@ -187,14 +187,14 @@ export default function RoomPage() {
             </div>
 
             {/* 代码编辑器 */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden flex-1">
               <CodeMirrorComponent message={isRun} />
             </div>
           </div>
 
           {/* 右侧聊天区域 */}
           <div className="w-96">
-            <div className="bg-white rounded-lg shadow-md h-[750px]">
+            <div className="bg-white rounded-lg shadow-md h-full">
               <ChatCom isClear={isClear} />
             </div>
           </div>
