@@ -17,6 +17,7 @@ import { leaveRoom } from '@/services/socketService';
 
 export default function RoomPage() {
   interface RoomData {
+    message: string,
     roomId: string;
     members: string[];
   }
@@ -36,29 +37,36 @@ export default function RoomPage() {
   const [isClear, setIsClear] = useState(false);
 
   const handleRoomUpdate = (data: RoomData) => {
-    // 过滤出其他成员
-    const otherMembers = data.members.filter(
-      (member) => member !== sessionStorage.getItem('name')
-    );
+    console.log(data, 'data');
 
-    // 将数组转换为 JSON 字符串存储
-    sessionStorage.setItem('anotherName', JSON.stringify(otherMembers));
+    if (data.message === '已更新') {
+      // 过滤出其他成员
+      const otherMembers = data.members.filter(
+        (member) => member !== sessionStorage.getItem('name')
+      );
 
-    if (data.members.length === 1) {
-      sessionStorage.removeItem('chatMessages');
-      setIsClear(true);
+      // 将数组转换为 JSON 字符串存储
+      sessionStorage.setItem('anotherName', JSON.stringify(otherMembers));
+
+      if (data.members.length === 1) {
+        sessionStorage.removeItem('chatMessages');
+        setIsClear(true);
+      }
+
+      // 更新状态
+      setAnotherPlayer(otherMembers);
+      dispatch(setAnotherName());
+    } else {
+      alert(data.message);
     }
-
-    // 更新状态
-    setAnotherPlayer(otherMembers);
-    dispatch(setAnotherName());
   };
 
   useEffect(() => {
-    joinRoom({
-      roomId: sessionStorage.getItem('roomId') || '',
-      userName: sessionStorage.getItem('name') || ''
-    });
+    //避免严格模式下两次调用该函数
+      joinRoom({
+        roomId: sessionStorage.getItem('roomId') || '',
+        userName: sessionStorage.getItem('name') || ''
+      });
   }, []);
 
   useEffect(() => {
@@ -70,6 +78,8 @@ export default function RoomPage() {
     const storedAnotherName = sessionStorage.getItem('anotherName');
     if (storedAnotherName) {
       try {
+        console.log(storedAnotherName,'sssss');
+        
         const parsedData = JSON.parse(storedAnotherName);
         setAnotherPlayer(parsedData);
       } catch (error) {

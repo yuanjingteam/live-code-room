@@ -2,8 +2,7 @@
 import Head from 'next/head';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import '@/lib/env';
 
@@ -16,7 +15,7 @@ import {
 // import { listenForEvents } from '@/services/socketService';
 import { listenForRoomUpdate } from '@/services/socketService';
 import { socket } from '@/services/socketService';
-import { joinRoom } from '@/services/socketService';
+import { createRoom, joinRoom } from '@/services/socketService';
 
 import CreateImg from '~/svg/CreateImg.svg';
 import JoinImg from '~/svg/JoinImg.svg';
@@ -52,6 +51,7 @@ export default function HomePage({ searchParams }: Props) {
   }
 
   interface RoomData {
+    message: string,
     roomId: string;
     members: string[];
   }
@@ -62,19 +62,29 @@ export default function HomePage({ searchParams }: Props) {
     nameCreate: '',
   });
 
+  const isJump = useRef(false);
+
   const handleRoomUpdate = (data: RoomData) => {
-    if (data && data.members && data.members.length > 0) {
-      const otherMember = data.members.filter(
-        (member) => member !== sessionStorage.getItem('name'),
-      )[0];
-      if (otherMember && sessionStorage.getItem('name')) {
-        sessionStorage.setItem('anotherName', otherMember);
-        dispatch(setAnotherName());
+    console.log(data, 'dataPPP');
+    if (data.message === '已更新') {
+      if (data && data.members && data.members.length > 0) {
+        const otherMember = data.members.filter(
+          (member) => member !== sessionStorage.getItem('name'),
+        );
+        if (otherMember && sessionStorage.getItem('name')) {
+          sessionStorage.setItem('anotherName', JSON.stringify(otherMember));
+          dispatch(setAnotherName());
+        }
       }
+      if (!sessionStorage.getItem('name')) {
+        socket.connect();
+      }
+      isJump.current = true;
+    } else {
+      isJump.current = false;
+      alert(data.message);
     }
-    if (!sessionStorage.getItem('name')) {
-      socket.connect();
-    }
+
   };
 
   useEffect(() => {
@@ -107,7 +117,7 @@ export default function HomePage({ searchParams }: Props) {
       alert('请填写你的名字');
       return;
     }
-    joinRoom({ roomId: roomCode, userName: formValues.nameCreate });
+    createRoom({ roomId: roomCode, userName: formValues.nameCreate });
     router.push(`/room?roomId=${roomCode}`);
   };
 
@@ -121,7 +131,9 @@ export default function HomePage({ searchParams }: Props) {
     if (roomIdPar) {
       sessionStorage.setItem('roomId', roomIdPar);
     }
-    router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
+    if (isJump) {
+      router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
+    }
   };
 
   //生成邀请链接
