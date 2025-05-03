@@ -14,6 +14,7 @@ import ChatCom from '@/app/components/chat';
 import CodeMirrorComponent from '@/app/components/codeMirror';
 import { joinRoom, listenForRoomUpdate, socket } from '@/services/socketService';
 import { leaveRoom } from '@/services/socketService';
+import MessageBox from '@/components/messageBox';
 
 export default function RoomPage() {
   interface RoomData {
@@ -36,9 +37,10 @@ export default function RoomPage() {
   //聊天记录是否清空
   const [isClear, setIsClear] = useState(false);
 
-  const handleRoomUpdate = (data: RoomData) => {
-    console.log(data, 'data');
+  //定义消息提示框中的信息
+  const [msg, setMsg] = useState<string | null>(null);
 
+  const handleRoomUpdate = (data: RoomData) => {
     if (data.message === '已更新') {
       // 过滤出其他成员
       const otherMembers = data.members.filter(
@@ -57,7 +59,7 @@ export default function RoomPage() {
       setAnotherPlayer(otherMembers);
       dispatch(setAnotherName());
     } else {
-      alert(data.message);
+      setMsg(data.message);
     }
   };
 
@@ -77,9 +79,7 @@ export default function RoomPage() {
     // 从 sessionStorage 获取并解析数据
     const storedAnotherName = sessionStorage.getItem('anotherName');
     if (storedAnotherName) {
-      try {
-        console.log(storedAnotherName,'sssss');
-        
+      try {  
         const parsedData = JSON.parse(storedAnotherName);
         setAnotherPlayer(parsedData);
       } catch (error) {

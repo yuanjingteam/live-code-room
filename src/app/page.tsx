@@ -12,13 +12,13 @@ import {
   setRoomId,
 } from '@/store/modules/userInfoStore';
 
-// import { listenForEvents } from '@/services/socketService';
 import { listenForRoomUpdate } from '@/services/socketService';
 import { socket } from '@/services/socketService';
 import { createRoom, joinRoom } from '@/services/socketService';
 
 import CreateImg from '~/svg/CreateImg.svg';
 import JoinImg from '~/svg/JoinImg.svg';
+import MessageBox from '@/components/messageBox';
 
 /**
  * SVGR Support
@@ -62,11 +62,17 @@ export default function HomePage({ searchParams }: Props) {
     nameCreate: '',
   });
 
-  const isJump = useRef(false);
+  //定义消息提示框中的信息
+  const [msg, setMsg] = useState<string | null>(null);
+
+  //控制加入房间的跳转逻辑
+  const isJoinJump = useRef(false);
 
   const handleRoomUpdate = (data: RoomData) => {
-    console.log(data, 'dataPPP');
     if (data.message === '已更新') {
+      if (isJoinJump.current) {
+        router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
+      }
       if (data && data.members && data.members.length > 0) {
         const otherMember = data.members.filter(
           (member) => member !== sessionStorage.getItem('name'),
@@ -79,10 +85,8 @@ export default function HomePage({ searchParams }: Props) {
       if (!sessionStorage.getItem('name')) {
         socket.connect();
       }
-      isJump.current = true;
     } else {
-      isJump.current = false;
-      alert(data.message);
+      setMsg(data.message);
     }
 
   };
@@ -93,6 +97,13 @@ export default function HomePage({ searchParams }: Props) {
       socket.off('room_update');
     };
   });
+
+  useEffect(() => {
+    if (msg) {
+      const timer = setTimeout(() => setMsg(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [msg]);
 
   // 处理名字输入框变化
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,7 +125,7 @@ export default function HomePage({ searchParams }: Props) {
     sessionStorage.setItem('roomId', roomCode);
     dispatch(setRoomId());
     if (formValues.nameCreate === '') {
-      alert('请填写你的名字');
+      setMsg('请填写你的名字');
       return;
     }
     createRoom({ roomId: roomCode, userName: formValues.nameCreate });
@@ -124,16 +135,17 @@ export default function HomePage({ searchParams }: Props) {
   //处理加入房间的逻辑
   const handleJoinRoom = () => {
     if (formValues.name === '') {
-      alert('请填写你的名字');
+      setMsg('请填写你的名字');
       return;
     }
     joinRoom({ roomId: roomIdPar || formValues.roomId, userName: formValues.name });
     if (roomIdPar) {
       sessionStorage.setItem('roomId', roomIdPar);
     }
-    if (isJump) {
-      router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
-    }
+    isJoinJump.current = true;
+    // if (isJump.current) {
+    //   router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
+    // }
   };
 
   //生成邀请链接
@@ -149,6 +161,11 @@ export default function HomePage({ searchParams }: Props) {
 
   return (
     <main>
+      {msg && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+          <MessageBox message={msg} type="error" onClose={() => setMsg(null)} />
+        </div>
+      )}
       <Head>
         <title>Live Code Room</title>
       </Head>
