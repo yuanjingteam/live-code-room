@@ -26,6 +26,7 @@ const roomTimers = new Map(); // 存储每个房间的定时器 ID
 io.on('connection', (socket) => {
 
   const handleUserLeave = () => {
+
     const roomId = socketToRoom.get(socket.id);
 
     if (roomId) {
@@ -33,18 +34,19 @@ io.on('connection', (socket) => {
       // 从房间中移除用户
       if (rooms.has(roomId)) {
 
+
         const userName = socket.userName;
         if (userName) {
 
           rooms.get(roomId).delete(userName);
           // 如果房间还有成员，广播更新
           if (rooms.get(roomId).size > 0) {
+
             const roomData = {
               message: '已更新',
               roomId,
               members: Array.from(rooms.get(roomId)),
             };
-
             io.to(roomId).emit('room_update', roomData);
 
           } else {
@@ -66,7 +68,6 @@ io.on('connection', (socket) => {
         // 为该房间设置定时器
         const timer = setTimeout(() => {
           handleUserLeave();
-          console.log('刷新断开');
         }, 5000);
 
         // 将定时器 ID 存储到 roomTimers 中
@@ -157,6 +158,7 @@ io.on('connection', (socket) => {
     // 加入房间
     socket.join(roomId);
     socketToRoom.set(socket.id, roomId);
+    socket.userName = userName;
 
     // 发送成功响应
     socket.emit('room_update', {
@@ -190,6 +192,7 @@ io.on('connection', (socket) => {
     // 加入房间
     socket.join(roomId);
     socketToRoom.set(socket.id, roomId);
+    socket.userName = userName;
     roomSet.add(userName);
 
     // 广播更新后的成员列表
