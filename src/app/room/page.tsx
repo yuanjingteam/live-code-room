@@ -14,9 +14,11 @@ import ChatCom from '@/app/components/chat';
 import CodeMirrorComponent from '@/app/components/codeMirror';
 import { joinRoom, listenForRoomUpdate, socket } from '@/services/socketService';
 import { leaveRoom } from '@/services/socketService';
+import MessageBox from '@/components/messageBox';
 
 export default function RoomPage() {
   interface RoomData {
+    message: string,
     roomId: string;
     members: string[];
   }
@@ -35,30 +37,38 @@ export default function RoomPage() {
   //聊天记录是否清空
   const [isClear, setIsClear] = useState(false);
 
+  //定义消息提示框中的信息
+  const [msg, setMsg] = useState<string | null>(null);
+
   const handleRoomUpdate = (data: RoomData) => {
-    // 过滤出其他成员
-    const otherMembers = data.members.filter(
-      (member) => member !== sessionStorage.getItem('name')
-    );
+    if (data.message === '已更新') {
+      // 过滤出其他成员
+      const otherMembers = data.members.filter(
+        (member) => member !== sessionStorage.getItem('name')
+      );
 
-    // 将数组转换为 JSON 字符串存储
-    sessionStorage.setItem('anotherName', JSON.stringify(otherMembers));
+      // 将数组转换为 JSON 字符串存储
+      sessionStorage.setItem('anotherName', JSON.stringify(otherMembers));
 
-    if (data.members.length === 1) {
-      sessionStorage.removeItem('chatMessages');
-      setIsClear(true);
+      if (data.members.length === 1) {
+        sessionStorage.removeItem('chatMessages');
+        setIsClear(true);
+      }
+
+      // 更新状态
+      setAnotherPlayer(otherMembers);
+      dispatch(setAnotherName());
+    } else {
+      setMsg(data.message);
     }
-
-    // 更新状态
-    setAnotherPlayer(otherMembers);
-    dispatch(setAnotherName());
   };
 
   useEffect(() => {
-    joinRoom({
-      roomId: sessionStorage.getItem('roomId') || '',
-      userName: sessionStorage.getItem('name') || ''
-    });
+    //避免严格模式下两次调用该函数
+      joinRoom({
+        roomId: sessionStorage.getItem('roomId') || '',
+        userName: sessionStorage.getItem('name') || ''
+      });
   }, []);
 
   useEffect(() => {
@@ -69,7 +79,7 @@ export default function RoomPage() {
     // 从 sessionStorage 获取并解析数据
     const storedAnotherName = sessionStorage.getItem('anotherName');
     if (storedAnotherName) {
-      try {
+      try {  
         const parsedData = JSON.parse(storedAnotherName);
         setAnotherPlayer(parsedData);
       } catch (error) {

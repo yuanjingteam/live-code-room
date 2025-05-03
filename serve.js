@@ -26,6 +26,7 @@ const roomTimers = new Map(); // 存储每个房间的定时器 ID
 io.on('connection', (socket) => {
 
   const handleUserLeave = () => {
+
     const roomId = socketToRoom.get(socket.id);
 
     if (roomId) {
@@ -33,17 +34,19 @@ io.on('connection', (socket) => {
       // 从房间中移除用户
       if (rooms.has(roomId)) {
 
+
         const userName = socket.userName;
         if (userName) {
 
           rooms.get(roomId).delete(userName);
           // 如果房间还有成员，广播更新
           if (rooms.get(roomId).size > 0) {
+
             const roomData = {
+              message: '已更新',
               roomId,
               members: Array.from(rooms.get(roomId)),
             };
-
             io.to(roomId).emit('room_update', roomData);
 
           } else {
@@ -58,6 +61,7 @@ io.on('connection', (socket) => {
 
   // 监听断开连接事件
   socket.on('disconnect', (reason) => {
+
     if (reason === 'transport close') {
       const roomId = socketToRoom.get(socket.id);
       if (roomId) {
@@ -84,86 +88,123 @@ io.on('connection', (socket) => {
 
   socket.on('leave_room', (payload) => {
     try {
-      // 从 payload 中获取要离开的房间 ID
-      const roomId = payload.roomId;
-      if (!roomId) {
-        return; // 如果没有提供房间 ID，则不执行任何操作
+      const { roomId, userName } = payload;
+      if (!roomId || !userName) {
+        socket.emit('room_update', { message: '房间ID或用户名不能为空' });
+        return;
       }
 
       // 检查该房间是否存在
       if (rooms.has(roomId)) {
-        const userName = socket.userName;
-        if (userName) {
-          const roomSet = rooms.get(roomId);
-          roomSet.delete(userName); // 从房间中移除用户
+        const roomSet = rooms.get(roomId);
 
-          if (roomSet.size > 0) {
-            // 如果房间中还有其他用户，广播房间更新
-            io.to(roomId).emit('room_update', {
-              roomId: roomId,
-              members: Array.from(roomSet),
-            });
-          } else {
-            // 如果房间中没有其他用户，删除房间
-            rooms.delete(roomId);
-          }
+        // 从房间中移除用户
+        roomSet.delete(userName);
+
+        // 清理相关的定时器
+        if (roomTimers.has(roomId)) {
+          clearTimeout(roomTimers.get(roomId));
+          roomTimers.delete(roomId);
         }
-      }
 
-      // 如果当前 socket 已经加入该房间，则让其离开
-      if (socket.rooms.has(roomId)) {
+        // 如果房间还有其他用户，广播更新
+        if (roomSet.size > 0) {
+          io.to(roomId).emit('room_update', {
+            message: '已更新',
+            roomId,
+            members: Array.from(roomSet),
+          });
+        } else {
+          // 如果房间空了，删除房间
+          rooms.delete(roomId);
+        }
+
+        // 让 socket 离开房间
         socket.leave(roomId);
-      }
 
-      // 如果当前 socket 的映射房间是这个房间，则清理映射
-      if (socketToRoom.get(socket.id) === roomId) {
-        socketToRoom.delete(socket.id);
-      }
-    } catch (err) {
-      console.log('Error in leave_room:', err);
-    }
-  });
-
-  socket.on('join_room', (payload) => {
-
-    try {
-      const roomId1 = socketToRoom.get(socket.id);
-      if (roomId1 && roomTimers.has(roomId1)) {
-        // 清除该房间的定时器
-        clearTimeout(roomTimers.get(roomId1));
-        roomTimers.delete(roomId1); // 从映射中移除定时器
-      }
-
-
-      // 2. 检查是否需要加入新房间
-      if (payload.roomId) {
-        socketToRoom.set(socket.id, payload.roomId);
-        socket.userName = payload.userName;
-
-        // 初始化房间
-        if (!rooms.has(payload.roomId)) {
-          rooms.set(payload.roomId, new Set());
-        }
-        const newRoomSet = rooms.get(payload.roomId);
-
-        // 清理可能残留的同名用户
-        if (newRoomSet.has(payload.userName)) {
-          newRoomSet.delete(payload.userName);
+        // 清理 socket 到房间的映射
+        if (socketToRoom.get(socket.id) === roomId) {
+          socketToRoom.delete(socket.id);
         }
 
-        newRoomSet.add(payload.userName);
-        socket.join(payload.roomId);
-
-        // 广播更新
-        io.to(payload.roomId).emit('room_update', {
-          roomId: payload.roomId,
-          members: Array.from(newRoomSet),
+        // 发送成功响应
+        socket.emit('room_update', {
+          message: '已更新',
+          roomId,
+          members: Array.from(roomSet)
         });
+      } else {
+        socket.emit('room_update', { message: '房间不存在' });
       }
     } catch (err) {
-      console.log('Error in join_room:', err);
+      console.error('Error in leave_room:', err);
+      socket.emit('room_update', { message: '离开房间时发生错误' });
     }
   });
+
+  // 创建房间
+  socket.on('create_room', (data) => {
+    const { roomId, userName } = data;
+
+    // 检查房间是否已存在
+    if (rooms.has(roomId)) {
+      socket.emit('room_update', { message: '房间已存在' });
+      return;
+    }
+
+    // 创建新房间
+    rooms.set(roomId, new Set([userName]));
+
+    // 加入房间
+    socket.join(roomId);
+    socketToRoom.set(socket.id, roomId);
+    socket.userName = userName;
+
+    // 发送成功响应
+    socket.emit('room_update', {
+      message: '已更新',
+      roomId,
+      members: Array.from(rooms.get(roomId))
+    });
+
+    console.log(`用户 ${userName} 创建了房间 ${roomId}`);
+  });
+
+  // 加入房间
+  socket.on('join_room', (data) => {
+    const roomId1 = socketToRoom.get(socket.id);
+    if (roomId1 && roomTimers.has(roomId1)) {
+      // 清除该房间的定时器
+      clearTimeout(roomTimers.get(roomId1));
+      roomTimers.delete(roomId1); // 从映射中移除定时器
+    }
+
+    const { roomId, userName } = data;
+
+    // 检查房间是否存在
+    if (!rooms.has(roomId)) {
+      socket.emit('room_update', { message: '房间不存在' });
+      return;
+    }
+
+    const roomSet = rooms.get(roomId);
+
+    // 加入房间
+    socket.join(roomId);
+    socketToRoom.set(socket.id, roomId);
+    socket.userName = userName;
+    roomSet.add(userName);
+
+    // 广播更新后的成员列表
+    io.to(roomId).emit('room_update', {
+      message: '已更新',
+      roomId,
+      members: Array.from(roomSet)
+    });
+
+    console.log(`用户 ${userName} 加入了房间 ${roomId}`);
+  });
+
 });
 
 app.use((req, res, next) => {

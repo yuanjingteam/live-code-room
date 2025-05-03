@@ -24,6 +24,7 @@ export default function ChatCom(props: ChatProps) {
   const [userName, setUserName] = useState('');
   const [chatMessages, setChatMessages] = useState<chatMessage[]>([]);
   const [roomId, setRoomId] = useState('');
+  // const isChatClear = sessionStorage.getItem('chatMessages');
 
   useEffect(() => {
     setUserName(sessionStorage.getItem('name') || '');
@@ -32,11 +33,13 @@ export default function ChatCom(props: ChatProps) {
 
   //判断是否清空聊天记录
   useEffect(() => {
-    setChatMessages(JSON.parse(sessionStorage.getItem('chatMessages') || '[]'));
-    if (props.isClear) {
-      setChatMessages([]);
-    }
-  }, [props.isClear])
+
+      setChatMessages(JSON.parse(sessionStorage.getItem('chatMessages') || '[]'));
+      if (props.isClear) {
+        setChatMessages([]);
+      }
+
+  }, [])
 
   //获取到输入框的内容
   const updateMessage = (e: React.ChangeEvent<HTMLInputElement>) => {

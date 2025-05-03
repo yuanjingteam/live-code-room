@@ -19,6 +19,11 @@ export const sendChatMessage = (payload) => {
   socket.emit('chat', payload);
 };
 
+export const createRoom = (room) => {
+  // 使用socket.emit方法发送一个名为'join_room'的事件，参数为room
+  socket.emit('create_room', room);
+};
+
 //让客户端加入指定的房间
 export const joinRoom = (room) => {
   // 使用socket.emit方法发送一个名为'join_room'的事件，参数为room
