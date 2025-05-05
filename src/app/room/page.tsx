@@ -7,12 +7,13 @@ import { FiCopy, FiLogOut, FiPlay } from 'react-icons/fi';
 import { RiTeamLine } from 'react-icons/ri';  // 添加在文件顶部
 import { useDispatch } from 'react-redux';
 
+import MessageBox from '@/components/messageBox';
+
 import { setAnotherName } from '@/store/modules/userInfoStore';
 
 import ChatCom from '@/app/components/chat';
 import CodeMirrorComponent from '@/app/components/codeMirror';
-import { joinRoom, listenForRoomUpdate, socket, leaveRoom } from '@/services/socketService';
-import MessageBox from '@/components/messageBox';
+import { joinRoom, leaveRoom, listenForRoomUpdate, socket } from '@/services/socketService';
 
 export default function RoomPage() {
   interface RoomData {
@@ -39,6 +40,8 @@ export default function RoomPage() {
   const [msg, setMsg] = useState<string | null>(null);
 
   const handleRoomUpdate = (data: RoomData) => {
+
+    console.log(data, 'daaat');
 
     if (data.message === '已更新') {
       // 过滤出其他成员

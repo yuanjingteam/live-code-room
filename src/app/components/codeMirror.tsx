@@ -21,7 +21,6 @@ export default function CodeMirrorComponent(props: CodeMirrorProps) {
 
   // 定义回调函数
   const handleCodeSnippet = (payload: codeType) => {
-    console.log('ddddd');
 
     sessionStorage.setItem('code', payload.codeSnippet);
     setCode(sessionStorage.getItem('code') as string);
