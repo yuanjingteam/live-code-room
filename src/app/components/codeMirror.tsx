@@ -120,27 +120,25 @@ export default function CodeMirrorComponent(props: CodeMirrorProps) {
 
   return (
     <div className="flex flex-col h-full max-w-[1096px] flex-1">
-      <div className="flex flex-col">
-        <CodeMirror
-          value={code}
-          onChange={(value: string) => setCode(value)}
-          extensions={[javascript({ jsx: true })]}
-          theme='dark'
-          maxWidth="100%"
-          className="overflow-auto"
-          height='550px'
-          basicSetup={{
-            lineNumbers: true,
-            foldGutter: true,
-            highlightActiveLineGutter: true,
-            highlightActiveLine: true,
-            highlightSelectionMatches: true,
-          }}
-        />
-      </div>
-      <div className="flex-1 mt-4 p-4 bg-gray-800 text-white rounded-lg flex-shrink-0">
+      <CodeMirror
+        value={code}
+        onChange={(value: string) => setCode(value)}
+        extensions={[javascript({ jsx: true })]}
+        theme='dark'
+        maxWidth="100%"
+        className="overflow-auto"
+        height='510px'
+        basicSetup={{
+          lineNumbers: true,
+          foldGutter: true,
+          highlightActiveLineGutter: true,
+          highlightActiveLine: true,
+          highlightSelectionMatches: true,
+        }}
+      />
+      <div className="mt-4 p-4 bg-gray-800 text-white rounded-lg flex-shrink-0">
         <h3 className="text-lg font-semibold mb-2">运行结果：</h3>
-        <div className="whitespace-pre-wrap max-h-[150px] overflow-y-auto">
+        <div className="h-full whitespace-pre-wrap max-h-[150px] overflow-y-auto">
           {error && <div style={{ color: "salmon" }}>{error}</div>}
           <iframe
             ref={iframeRef}
