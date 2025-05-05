@@ -12,10 +12,7 @@ import {
   setRoomId,
 } from '@/store/modules/userInfoStore';
 
-import { listenForRoomUpdate } from '@/services/socketService';
-import { socket } from '@/services/socketService';
-import { createRoom, joinRoom } from '@/services/socketService';
-
+import { listenForRoomUpdate, socket, createRoom, joinRoom } from '@/services/socketService';
 import CreateImg from '~/svg/CreateImg.svg';
 import JoinImg from '~/svg/JoinImg.svg';
 import MessageBox from '@/components/messageBox';
@@ -68,10 +65,14 @@ export default function HomePage({ searchParams }: Props) {
   //控制加入房间的跳转逻辑
   const isJoinJump = useRef(false);
 
-  const handleRoomUpdate = (data: RoomData) => {
+  //控制loading状态
+  const [loading, setLoading] = useState(false);
+
+  const handleRoomUpdate = (data: RoomData) => {// 开始 loading
     if (data.message === '已更新') {
       if (isJoinJump.current) {
         router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
+        setLoading(false);
       }
       if (data && data.members && data.members.length > 0) {
         const otherMember = data.members.filter(
@@ -87,8 +88,8 @@ export default function HomePage({ searchParams }: Props) {
       }
     } else {
       setMsg(data.message);
+      setLoading(false);
     }
-
   };
 
   useEffect(() => {
@@ -128,6 +129,9 @@ export default function HomePage({ searchParams }: Props) {
       setMsg('请填写你的名字');
       return;
     }
+    //判断是创建房间，在进入房间后判断是否执行加入房间的操作
+    sessionStorage.setItem('isCreator', 'true');
+    setLoading(true); // 开始 loading
     createRoom({ roomId: roomCode, userName: formValues.nameCreate });
     router.push(`/room?roomId=${roomCode}`);
   };
@@ -138,14 +142,12 @@ export default function HomePage({ searchParams }: Props) {
       setMsg('请填写你的名字');
       return;
     }
+    setLoading(true); // 开始 loading
     joinRoom({ roomId: roomIdPar || formValues.roomId, userName: formValues.name });
     if (roomIdPar) {
       sessionStorage.setItem('roomId', roomIdPar);
     }
     isJoinJump.current = true;
-    // if (isJump.current) {
-    //   router.push(`/room?roomId=${roomIdPar || formValues.roomId}`);
-    // }
   };
 
   //生成邀请链接
@@ -161,54 +163,75 @@ export default function HomePage({ searchParams }: Props) {
 
   return (
     <main>
+      {/* 消息提示 */}
       {msg && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
           <MessageBox message={msg} type="error" onClose={() => setMsg(null)} />
         </div>
       )}
+      {/* 加载loading */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-6">
+            {/* 更大更显眼的 loading 动画 */}
+            <svg className="animate-spin h-16 w-16 text-emerald-400 drop-shadow-lg" viewBox="0 0 50 50">
+              <circle className="opacity-20" cx="25" cy="25" r="20" stroke="currentColor" strokeWidth="6" fill="none" />
+              <path className="opacity-90" fill="currentColor" d="M25 5a20 20 0 0 1 20 20" />
+            </svg>
+            {/* 更醒目的提示文字 */}
+            <div className="text-2xl font-bold text-white drop-shadow-lg tracking-wide text-center">
+              正在进入房间，请稍候...
+            </div>
+            {/* 可选：再加一个小提示 */}
+            <div className="text-base text-emerald-100 mt-2 text-center">
+              网络较慢时请耐心等待，不要重复点击
+            </div>
+          </div>
+        </div>
+      )}
       <Head>
         <title>Live Code Room</title>
       </Head>
-      <section className='bg-white px-8 py-8 h-screen'>
-        <h1 className='text-center'>Live Code Room</h1>
-        <div className='flex w-[1000px] h-[650px] m-auto mt-8'>
-          <div className=' border rounded-lg shadow-lg px-8 py-8 mx-10  w-[450px] h-[650px]'>
-            <h1 className='text-center'>加 入 房 间</h1>
-            <JoinImg className='max-w-sm'></JoinImg>
+      <section className="bg-white px-2 sm:px-4 py-8 min-h-screen">
+        <h1 className="text-center text-5l font-bold mb-6">Live Code Room</h1>
+        <div className="flex flex-col md:flex-row gap-8 w-[70vw] max-w-4xl mx-auto">
+          <div className="flex-1 border rounded-lg shadow-lg px-6 py-10 bg-white min-w-0 flex flex-col">
+            <h1 className="text-center text-4xl font-bold mb-6 tracking-wide">加 入 房 间</h1>
+            <JoinImg className="max-w-s mx-auto mb-4" />
             <input
-              type='text'
-              placeholder='请填写你的名字'
-              className='w-full rounded-lg'
-              name='name'
+              type="text"
+              placeholder="请填写你的名字"
+              className="w-full rounded-lg border px-3 py-2 mb-3"
+              name="name"
               onChange={handleChange}
             />
             <input
-              type='text'
-              placeholder='请填写房间号'
-              className='w-full my-5 rounded-lg'
-              name='roomId'
+              type="text"
+              placeholder="请填写房间号"
+              className="w-full rounded-lg border px-3 py-2 mb-5"
+              name="roomId"
               onChange={handleChange}
               value={roomIdPar}
             />
             <button
-              className='w-full h-10 border rounded-lg bg-lime-500 hover:bg-lime-600'
+              className="w-full h-10 border rounded-lg bg-lime-500 hover:bg-lime-600 text-white font-semibold transition mt-auto"
               onClick={handleJoinRoom}
             >
               加入房间
             </button>
           </div>
-          <div className='border rounded-lg shadow-lg px-8 py-8 mx-14 w-[450px] h-[650px]'>
-            <h1 className='text-center'>创建房间</h1>
-            <CreateImg></CreateImg>
+          <div className="flex-1 border rounded-lg shadow-lg px-6 py-10 bg-white min-w-0 flex flex-col">
+            <h1 className="text-center text-4xl font-bold mb-6 tracking-wide">创 建 房 间</h1>
+            <CreateImg className="max-w-s mx-auto mb-8" />
             <input
-              type='text'
-              placeholder='请填写你的名字'
-              className='w-full rounded-lg mt-14 my-5'
-              name='nameCreate'
+              type="text"
+              placeholder="请填写你的名字"
+              className="w-full rounded-lg border px-3 py-2 mb-8 mt-8"
+              name="nameCreate"
               onChange={handleChange}
             />
             <button
-              className='w-full h-10 border rounded-lg bg-lime-500 hover:bg-lime-600'
+              className="w-full h-10 border rounded-lg bg-lime-500 hover:bg-lime-600 text-white font-semibold transition mt-auto"
               onClick={handleCreateRoom}
             >
               创建房间

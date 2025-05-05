@@ -23,6 +23,8 @@ const rooms = new Map();
 const socketToRoom = new Map(); // 用于跟踪 socket 所在的房间
 const roomTimers = new Map(); // 存储每个房间的定时器 ID
 
+let isRefresh = false;    //判断是因为刷新断连时进的时候已经有同名用户在房间内了
+
 io.on('connection', (socket) => {
 
   const handleUserLeave = () => {
@@ -63,8 +65,11 @@ io.on('connection', (socket) => {
   socket.on('disconnect', (reason) => {
 
     if (reason === 'transport close') {
+      isRefresh = true;
       const roomId = socketToRoom.get(socket.id);
       if (roomId) {
+        console.log('用户离开房间');
+
         // 为该房间设置定时器
         const timer = setTimeout(() => {
           handleUserLeave();
@@ -172,11 +177,14 @@ io.on('connection', (socket) => {
 
   // 加入房间
   socket.on('join_room', (data) => {
-    const roomId1 = socketToRoom.get(socket.id);
-    if (roomId1 && roomTimers.has(roomId1)) {
+    // const roomId1 = socketToRoom.get(socket.id);
+    // console.log(roomId1, 'roomId1');
+
+    if (data.roomId && roomTimers.has(data.roomId)) {
       // 清除该房间的定时器
-      clearTimeout(roomTimers.get(roomId1));
-      roomTimers.delete(roomId1); // 从映射中移除定时器
+      clearTimeout(roomTimers.get(data.roomId));
+      roomTimers.delete(data.roomId); // 从映射中移除定时器
+      console.log('清除定时器');
     }
 
     const { roomId, userName } = data;
@@ -188,6 +196,14 @@ io.on('connection', (socket) => {
     }
 
     const roomSet = rooms.get(roomId);
+
+    console.log(isRefresh, 'roomSet');
+
+    //判断用户名是否在这个房间已经存在
+    if (roomSet.has(userName) && !isRefresh) {
+      socket.emit('room_update', { message: '该用户名已被占用，请换一个名字' });
+      return;
+    }
 
     // 加入房间
     socket.join(roomId);
@@ -202,7 +218,7 @@ io.on('connection', (socket) => {
       members: Array.from(roomSet)
     });
 
-    console.log(`用户 ${userName} 加入了房间 ${roomId}`);
+    isRefresh = false;
   });
 
 });

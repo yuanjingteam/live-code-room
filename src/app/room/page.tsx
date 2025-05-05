@@ -3,18 +3,17 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { BsPeople } from 'react-icons/bs';
-import { FiCopy, FiLogOut } from 'react-icons/fi';
-import { FiPlay } from 'react-icons/fi';
+import { FiCopy, FiLogOut, FiPlay } from 'react-icons/fi';
 import { RiTeamLine } from 'react-icons/ri';  // 添加在文件顶部
 import { useDispatch } from 'react-redux';
+
+import MessageBox from '@/components/messageBox';
 
 import { setAnotherName } from '@/store/modules/userInfoStore';
 
 import ChatCom from '@/app/components/chat';
 import CodeMirrorComponent from '@/app/components/codeMirror';
-import { joinRoom, listenForRoomUpdate, socket } from '@/services/socketService';
-import { leaveRoom } from '@/services/socketService';
-import MessageBox from '@/components/messageBox';
+import { joinRoom, leaveRoom, listenForRoomUpdate, socket } from '@/services/socketService';
 
 export default function RoomPage() {
   interface RoomData {
@@ -41,6 +40,9 @@ export default function RoomPage() {
   const [msg, setMsg] = useState<string | null>(null);
 
   const handleRoomUpdate = (data: RoomData) => {
+
+    console.log(data, 'daaat');
+
     if (data.message === '已更新') {
       // 过滤出其他成员
       const otherMembers = data.members.filter(
@@ -59,17 +61,27 @@ export default function RoomPage() {
       setAnotherPlayer(otherMembers);
       dispatch(setAnotherName());
     } else {
-      setMsg(data.message);
+      if (data.message !== '该用户名已被占用，请换一个名字') {
+        setMsg(data.message);
+        router.push('/');
+      }
     }
   };
 
   useEffect(() => {
     //避免严格模式下两次调用该函数
-      joinRoom({
-        roomId: sessionStorage.getItem('roomId') || '',
-        userName: sessionStorage.getItem('name') || ''
-      });
+    joinRoom({
+      roomId: sessionStorage.getItem('roomId') || '',
+      userName: sessionStorage.getItem('name') || ''
+    });
   }, []);
+
+  useEffect(() => {
+    if (msg) {
+      const timer = setTimeout(() => setMsg(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [msg]);
 
   useEffect(() => {
     setRoomId(sessionStorage.getItem('roomId') || '');
@@ -79,7 +91,7 @@ export default function RoomPage() {
     // 从 sessionStorage 获取并解析数据
     const storedAnotherName = sessionStorage.getItem('anotherName');
     if (storedAnotherName) {
-      try {  
+      try {
         const parsedData = JSON.parse(storedAnotherName);
         setAnotherPlayer(parsedData);
       } catch (error) {
@@ -105,7 +117,7 @@ export default function RoomPage() {
     const link = `和我一起加入结对编程，我在这里等你哦！访问：http://localhost:3000?roomId=${roomId} 房间号：${roomId}`;
     // 使用现代 Clipboard API
     navigator.clipboard.writeText(link).then(() => {
-      alert('邀请链接已复制到剪贴板！\n房间号: ' + roomId);
+      setMsg('邀请链接已复制到剪贴板！\n房间号: ' + roomId);
     });
   };
 
@@ -125,6 +137,11 @@ export default function RoomPage() {
 
   return (
     <main>
+      {msg && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+          <MessageBox message={msg} type="success" onClose={() => setMsg(null)} />
+        </div>
+      )}
       <div>
         <div className="bg-white rounded-xl shadow-lg p-4 mb-6 backdrop-blur-sm bg-opacity-90">
           <div className="flex items-center justify-between gap-4">
