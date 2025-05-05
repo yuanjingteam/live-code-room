@@ -1,12 +1,9 @@
 import React from 'react';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BsChatSquareText } from 'react-icons/bs';
 import { IoSendSharp } from 'react-icons/io5';
 
-import { sendChatMessage } from '@/services/socketService';
-import { listenForChat } from '@/services/socketService';
-import { socket } from '@/services/socketService';
+import { sendChatMessage, listenForChat, socket } from '@/services/socketService';
 
 interface ChatProps {
   isClear: boolean;
@@ -34,10 +31,10 @@ export default function ChatCom(props: ChatProps) {
   //判断是否清空聊天记录
   useEffect(() => {
 
-      setChatMessages(JSON.parse(sessionStorage.getItem('chatMessages') || '[]'));
-      if (props.isClear) {
-        setChatMessages([]);
-      }
+    setChatMessages(JSON.parse(sessionStorage.getItem('chatMessages') || '[]'));
+    if (props.isClear) {
+      setChatMessages([]);
+    }
 
   }, [])
 

@@ -189,6 +189,12 @@ io.on('connection', (socket) => {
 
     const roomSet = rooms.get(roomId);
 
+    //判断用户名是否在这个房间已经存在
+    if (roomSet.has(userName)) {
+      socket.emit('room_update', { message: '该用户名已被占用，请换一个名字' });
+      return;
+    }
+
     // 加入房间
     socket.join(roomId);
     socketToRoom.set(socket.id, roomId);
